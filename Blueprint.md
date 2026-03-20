@@ -1,6 +1,6 @@
 # Multi-Game Platform — Project Blueprint
 
-> **Chess · Ludo · UNO · Monopoly · Snakes & Ladders · Never Have I Ever**
+> **Chess · Ludo · UNO · Monopoly · Snakes & Ladders · Never Have I Ever · Scribble**
 
 | | |
 |---|---|
@@ -336,11 +336,11 @@ This is the most important section. The order matters. Each step teaches you som
 
 Get your environment running before writing any game code.
 
-- [ ] Install Node.js (v20+), VS Code, Git
-- [ ] Create a GitHub repository for your project
-- [ ] Set up Vite + React + TypeScript frontend: `npm create vite@latest`
-- [ ] Install Tailwind CSS: `npx tailwindcss init`
-- [ ] Set up Node.js + Express backend with TypeScript: `npm init`, install `ts-node`
+- [X] ~~*Install Node.js (v20+), VS Code, Git*~~ [2026-03-20]
+- [X] ~~*Create a GitHub repository for your project*~~ [2026-03-20]
+- [X] ~~*Set up Vite + React + TypeScript frontend: `npm create vite@latest`*~~ [2026-03-20], 'npm run dev'
+- [X] ~~*Install Tailwind CSS: `npm install tailwindcss @tailwindcss/vite`*~~ [2026-03-20]
+- [X] ~~*Set up Node.js + Express backend with TypeScript: `npm init`, install `ts-node`*~~ [2026-03-20]
 - [ ] Set up Prisma and connect to a local PostgreSQL database
 - [ ] Deploy a "hello world" to Vercel (frontend) and Railway (backend)
 - [ ] Confirm the frontend can make an API call to the backend
