@@ -1,9 +1,12 @@
 import './App.css'
-import LandingPage from './pages/landing_page'
+import LandingPage from './pages/Landing_page'
+import { ThemeProvider } from './context/ThemeContext'
 
 function App() {
   return (
-    <LandingPage />
+    <ThemeProvider>
+      <LandingPage />
+    </ThemeProvider>
   )
 }
 

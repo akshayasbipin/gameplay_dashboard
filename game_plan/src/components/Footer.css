@@ -1,9 +1,10 @@
 /* Footer Component Styles */
 .footer {
-  background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
-  color: #ECF0F1;
+  background: linear-gradient(135deg, var(--bgSecondary) 0%, var(--bgTertiary) 100%);
+  color: var(--text);
   padding: 4rem 2rem 1.5rem;
-  border-top: 4px solid #FF6B9D;
+  border-top: 4px solid var(--primary);
+  transition: all 0.3s ease;
 }
 
 .footer-container {
@@ -55,21 +56,21 @@
 }
 
 .footer-logo-text {
-  background: linear-gradient(135deg, #FF6B9D, #FFB84D);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .footer-description {
-  color: #BDC3C7;
+  color: var(--textSecondary);
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
 }
 
 .footer-section h4 {
-  color: #FF6B9D;
+  color: var(--primary);
   margin-bottom: 1.2rem;
   font-size: 1.1rem;
   font-weight: 700;
@@ -87,7 +88,7 @@
 }
 
 .footer-section a {
-  color: #BDC3C7;
+  color: var(--textSecondary);
   text-decoration: none;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -95,7 +96,7 @@
 }
 
 .footer-section a:hover {
-  color: #FF6B9D;
+  color: var(--primary);
   transform: translateX(5px);
   font-weight: 600;
 }
@@ -111,8 +112,8 @@
 .footer-bottom {
   text-align: center;
   padding-top: 2rem;
-  border-top: 2px solid rgba(255, 107, 157, 0.3);
-  color: #95A5A6;
+  border-top: 2px solid var(--border);
+  color: var(--textLight);
   font-size: 0.9rem;
 }
 

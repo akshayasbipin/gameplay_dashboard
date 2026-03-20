@@ -9,8 +9,8 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  color: #2C3E50;
-  background: #f8f9fa;
+  color: var(--text);
+  background: var(--bgSecondary);
 }
 
 .landing-page {
@@ -20,7 +20,7 @@ body {
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--accentAlt2) 100%);
   color: white;
   padding: 5rem 2rem;
   position: relative;
@@ -115,7 +115,7 @@ body {
 
 .hero-button.primary {
   background: white;
-  color: #667EEA;
+  color: var(--secondary);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
@@ -200,7 +200,7 @@ body {
 /* Features Section */
 .features {
   padding: 6rem 2rem;
-  background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+  background: linear-gradient(180deg, var(--bgSecondary) 0%, var(--bg) 100%);
 }
 
 .features-container {
@@ -212,7 +212,7 @@ body {
   font-size: 3rem;
   text-align: center;
   margin-bottom: 1rem;
-  color: #2C3E50;
+  color: var(--text);
   font-weight: 900;
   letter-spacing: -0.5px;
 }
@@ -220,7 +220,7 @@ body {
 .section-subtitle {
   font-size: 1.2rem;
   text-align: center;
-  color: #7F8C8D;
+  color: var(--textSecondary);
   margin-bottom: 4rem;
   font-weight: 400;
 }
@@ -232,7 +232,7 @@ body {
 }
 
 .feature-card {
-  background: white;
+  background: var(--bg);
   padding: 2.5rem;
   border-radius: 20px;
   text-align: center;
@@ -250,7 +250,7 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #FF6B9D, #667EEA, #764BA2);
+  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accentAlt2));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -259,7 +259,7 @@ body {
 .feature-card:hover {
   transform: translateY(-10px) scale(1.02);
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
-  border-color: #667EEA;
+  border-color: var(--secondary);
 }
 
 .feature-card:hover::before {
@@ -280,19 +280,19 @@ body {
 .feature-card h3 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #2C3E50;
+  color: var(--text);
   font-weight: 700;
 }
 
 .feature-card p {
-  color: #7F8C8D;
+  color: var(--textSecondary);
   line-height: 1.8;
   margin-bottom: 1.5rem;
 }
 
 .feature-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #FF6B9D, #FFB84D);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
   padding: 0.4rem 1rem;
   border-radius: 20px;
@@ -305,7 +305,7 @@ body {
 
 /* Call to Action Section */
 .cta {
-  background: linear-gradient(135deg, #FF6B9D 0%, #C06C84 50%, #6C5B7B 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accentAlt1) 50%, var(--accentAlt3) 100%);
   color: white;
   padding: 5rem 2rem;
   position: relative;
@@ -386,7 +386,7 @@ body {
 
 .cta-button {
   background: white;
-  color: #FF6B9D;
+  color: var(--primary);
   border: none;
   padding: 1.2rem 2.5rem;
   font-size: 1.1rem;
@@ -402,7 +402,7 @@ body {
 .cta-button:hover {
   transform: translateY(-5px) scale(1.05);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-  background: #FFF5E1;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .cta-subtext {
@@ -446,7 +446,7 @@ body {
 /* Stats Section */
 .stats {
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+  background: linear-gradient(135deg, var(--bgSecondary) 0%, var(--bgTertiary) 100%);
 }
 
 .stats-container {
@@ -462,23 +462,23 @@ body {
   padding: 2rem;
   border-radius: 15px;
   text-align: center;
-  color: white;
+  color: var(--text);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-8px);
   background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 25px rgba(255, 107, 157, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card h3 {
   font-size: 2.8rem;
   font-weight: 900;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #FF6B9D, #FFB84D);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
