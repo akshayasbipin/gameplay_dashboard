@@ -1,57 +1,67 @@
-import React from 'react';
-import './landing_page.css';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import './Landing_page.css';
 
 export default function LandingPage() {
   return (
-    
     <div className="landing-page">
-      {/* Navigation */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">GamePlan</div>
-          <ul className="nav-menu">
-            <li className="nav-item"><a href="#home" className="nav-link">Home</a></li>
-            <li className="nav-item"><a href="#features" className="nav-link">Features</a></li>
-            <li className="nav-item"><a href="#about" className="nav-link">About</a></li>
-            <li className="nav-item"><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-          <button className="nav-button">Get Started</button>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero Section */}
       <section id="home" className="hero">
         <div className="hero-content">
+          <div className="hero-icon">🎯</div>
           <h1 className="hero-title">Welcome to GamePlan</h1>
-          <p className="hero-subtitle">Your Ultimate Platform for Strategic Planning</p>
-          <button className="hero-button">Start Now</button>
+          <p className="hero-subtitle">Your Ultimate Platform for Strategic Planning & Game Mastery</p>
+          <div className="hero-button-group">
+            <button className="hero-button primary">Start Your Adventure</button>
+            <button className="hero-button secondary">Watch Demo</button>
+          </div>
+        </div>
+        <div className="hero-decoration">
+          <div className="floating-shape shape1"></div>
+          <div className="floating-shape shape2"></div>
+          <div className="floating-shape shape3"></div>
         </div>
       </section>
 
       {/* Features Section */}
       <section id="features" className="features">
         <div className="features-container">
-          <h2>Our Features</h2>
+          <h2 className="section-title">Why You'll Love GamePlan</h2>
+          <p className="section-subtitle">Everything you need to plan like a pro</p>
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">📊</div>
-              <h3>Analytics</h3>
-              <p>Track your progress with powerful analytics and insights.</p>
+              <h3>Smart Analytics</h3>
+              <p>Track your progress with beautiful, easy-to-understand analytics and real-time insights.</p>
+              <div className="feature-badge">Popular</div>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">⚡</div>
+              <h3>Lightning Fast</h3>
+              <p>Super-fast performance that keeps up with your gameplay. Never miss a beat.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🔐</div>
+              <h3>Fort Knox Security</h3>
+              <p>Bank-level encryption to keep your strategies and data safe from prying eyes.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">👥</div>
+              <h3>Team Power</h3>
+              <p>Collaborate seamlessly with your squad in real-time. Victory together is sweeter!</p>
+              <div className="feature-badge">New</div>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">🎮</div>
+              <h3>Game Ready</h3>
+              <p>Designed by gamers, for gamers. Every feature is built with your experience in mind.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">🚀</div>
-              <h3>Performance</h3>
-              <p>Lightning-fast performance optimized for your workflow.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🔒</div>
-              <h3>Security</h3>
-              <p>Bank-level security to keep your data safe and protected.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🤝</div>
-              <h3>Collaboration</h3>
-              <p>Work together seamlessly with your team in real-time.</p>
+              <h3>Always Evolving</h3>
+              <p>Regular updates and new features to keep GamePlan fresh and ahead of the game.</p>
             </div>
           </div>
         </div>
@@ -60,40 +70,41 @@ export default function LandingPage() {
       {/* Call to Action Section */}
       <section className="cta">
         <div className="cta-content">
-          <h2>Ready to Get Started?</h2>
-          <p>Join thousands of users already using GamePlan</p>
-          <button className="cta-button">Sign Up Free</button>
+          <div className="cta-icon">🏆</div>
+          <h2>Ready to Level Up Your Planning?</h2>
+          <p>Join thousands of gamers already using GamePlan to dominate their strategy</p>
+          <button className="cta-button">Get Started Free</button>
+          <p className="cta-subtext">No credit card required • 30-day free trial</p>
+        </div>
+        <div className="cta-decoration">
+          <div className="floating-circle circle1"></div>
+          <div className="floating-circle circle2"></div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-container">
-          <div className="footer-section">
-            <h4>GamePlan</h4>
-            <p>Making planning simple and effective.</p>
+      {/* Stats Section */}
+      <section className="stats">
+        <div className="stats-container">
+          <div className="stat-card">
+            <h3>50K+</h3>
+            <p>Active Players</p>
           </div>
-          <div className="footer-section">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><a href="#home">Home</a></li>
-              <li><a href="#features">Features</a></li>
-              <li><a href="#about">About</a></li>
-            </ul>
+          <div className="stat-card">
+            <h3>100%</h3>
+            <p>Satisfaction Rate</p>
           </div>
-          <div className="footer-section">
-            <h4>Follow Us</h4>
-            <ul>
-              <li><a href="#twitter">Twitter</a></li>
-              <li><a href="#facebook">Facebook</a></li>
-              <li><a href="#linkedin">LinkedIn</a></li>
-            </ul>
+          <div className="stat-card">
+            <h3>24/7</h3>
+            <p>Support Team</p>
+          </div>
+          <div className="stat-card">
+            <h3>150+</h3>
+            <p>Game Integrations</p>
           </div>
         </div>
-        <div className="footer-bottom">
-          <p>&copy; 2026 GamePlan. All rights reserved.</p>
-        </div>
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   );
 }
