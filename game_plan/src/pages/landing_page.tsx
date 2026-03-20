@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Wavify from 'react-wavify';
 import './Landing_page.css';
 
 export default function LandingPage() {
@@ -103,6 +104,22 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Wave Animation */}
+      <Wavify
+        fill='#0080C0'
+        paused={false}
+        options={{
+          height: 6,
+          amplitude: 100,
+          speed: 0.18,
+          points: 4,
+        }}
+        style={{
+          display: 'flex',
+          marginTop: -40,
+        }}
+      />
 
       <Footer />
     </div>
