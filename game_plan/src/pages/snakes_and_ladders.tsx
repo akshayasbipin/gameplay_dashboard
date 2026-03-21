@@ -265,7 +265,7 @@ export default function SnakesAndLaddersGame() {
       if (rollAnimRef.current) clearInterval(rollAnimRef.current);
       setRollingAnim(false);
 
-      setGameState(prev => {
+      setGameState(() => {
         const next = computeRoll(currentState);
         setAnimDice(next.diceValue ?? 1);
 
@@ -310,7 +310,7 @@ export default function SnakesAndLaddersGame() {
   function startGame() {
     const humanCount = Math.max(1, playerCount - botCount);
     const bots = Math.min(botCount, playerCount - 1);
-    const total = humanCount + bots;
+    //const total = humanCount + bots;
 
     const players: Player[] = [];
 

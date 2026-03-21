@@ -1,4 +1,3 @@
-import Footer from '../components/Footer';
 import Wavify from 'react-wavify';
 import { ThemeToggle } from '../components/ThemeToggle';
 import './Landing_page.css';
