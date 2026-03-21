@@ -1,0 +1,174 @@
+/* Light Theme - Default */
+:root.light-theme {
+  /* Primary */
+  --primary: #FF6B9D;
+  --primaryDark: #E84C7C;
+  --primaryLight: #FF85B3;
+  
+  /* Secondary */
+  --secondary: #667EEA;
+  --secondaryDark: #5568D3;
+  
+  /* Accents */
+  --accent: #667EEA;
+  --accentAlt1: #C06C84;
+  --accentAlt2: #764BA2;
+  --accentAlt3: #6C5B7B;
+  
+  /* Water */
+  --water: #0080C0;
+  
+  /* Background */
+  --bg: #FFFFFF;
+  --bgSecondary: #F8F9FA;
+  --bgTertiary: #E8F4F8;
+  
+  /* Text */
+  --text: #2C3E50;
+  --textSecondary: #6b7280;
+  --textLight: #9CA3AF;
+  
+  /* Border */
+  --border: #e5e7eb;
+  --borderLight: #f3f4f6;
+  
+  /* Utility */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  
+  /* Shadow */
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --shadowHeavy: rgba(0, 0, 0, 0.15) 0 20px 25px -5px, rgba(0, 0, 0, 0.1) 0 10px 10px -5px;
+  
+  color-scheme: light;
+}
+
+/* Dark Theme */
+:root.dark-theme {
+  /* Primary */
+  --primary: #FF6B9D;
+  --primaryDark: #E84C7C;
+  --primaryLight: #FF85B3;
+  
+  /* Secondary */
+  --secondary: #8B9DEA;
+  --secondaryDark: #7A8CD9;
+  
+  /* Accents */
+  --accent: #8B9DEA;
+  --accentAlt1: #D88FA0;
+  --accentAlt2: #9B7EC8;
+  --accentAlt3: #9E8AA0;
+  
+  /* Water */
+  --water: #00A8E8;
+  
+  /* Background */
+  --bg: #16171d;
+  --bgSecondary: #1F2028;
+  --bgTertiary: #2A2D3A;
+  
+  /* Text */
+  --text: #E5E7EB;
+  --textSecondary: #D1D5DB;
+  --textLight: #9CA3AF;
+  
+  /* Border */
+  --border: #2e303a;
+  --borderLight: #3a3d47;
+  
+  /* Utility */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
+  
+  /* Shadow */
+  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  --shadowHeavy: rgba(0, 0, 0, 0.6) 0 20px 25px -5px, rgba(0, 0, 0, 0.4) 0 10px 10px -5px;
+  
+  color-scheme: dark;
+}
+
+/* Base Styles */
+:root {
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
