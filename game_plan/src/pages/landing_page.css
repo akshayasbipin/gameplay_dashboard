@@ -25,7 +25,7 @@ body {
   color: #333;
   padding: 2rem 4rem;
   position: relative;
-  min-height: 700px;
+  min-height: 659px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -104,11 +104,9 @@ body {
 
 .avatar-container {
   position: relative;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
+  width: 400px;
+  height: 400px;
   overflow: hidden;
-  background: #ffffff;
   /* box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); */
   animation: float 3s ease-in-out infinite;
 }
@@ -117,7 +115,6 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #ffffff;
   display: block;
 }
 
@@ -129,11 +126,18 @@ body {
     transform: translateY(-20px);
   }
 }
+.hero-button-group {
+  position: absolute;
+  bottom: 0px; /* keep inside hero */
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 5;
+}
 
 .sound-icon {
-  position: absolute;
-  bottom: -150px;
-  right: 20px;
   font-size: 2.5rem;
   background: #ffffff;
   border-radius: 50%;
@@ -147,9 +151,6 @@ body {
 }
 
 .theme-toggle-position {
-  position: absolute;
-  bottom: -140px;
-  left: 40px;
   z-index: 10;
 }
 
@@ -550,4 +551,5 @@ body {
     width: 50px;
     height: 50px;
   }
+
 }

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import type { ThemeMode, ThemeColors } from '../theme/theme';
 import { getTheme } from '../theme/theme';
 
@@ -25,7 +25,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return 'light';
   });
 
-  const colors = getTheme(mode);
+  const colors = useMemo(() => getTheme(mode), [mode]);
 
   // Update document class and CSS variables
   useEffect(() => {
@@ -42,16 +42,23 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('theme-mode', mode);
   }, [mode, colors]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setMode(prev => prev === 'light' ? 'dark' : 'light');
-  };
+  }, []);
 
-  const setTheme = (newMode: ThemeMode) => {
+  const setTheme = useCallback((newMode: ThemeMode) => {
     setMode(newMode);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    mode,
+    colors,
+    toggleTheme,
+    setTheme,
+  }), [mode, colors, toggleTheme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ mode, colors, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
