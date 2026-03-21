@@ -338,7 +338,7 @@ Get your environment running before writing any game code.
 
 - [X] ~~*Install Node.js (v20+), VS Code, Git*~~ [2026-03-20]
 - [X] ~~*Create a GitHub repository for your project*~~ [2026-03-20]
-- [X] ~~*Set up Vite + React + TypeScript frontend: `npm create vite@latest`*~~ [2026-03-20], 'npm run dev'
+- [X] ~~*Set up Vite + React + TypeScript frontend: `npm create vite@latest`*~~ [2026-03-20], 'npm run dev', 'npm install react-wavify'
 - [X] ~~*Install Tailwind CSS: `npm install tailwindcss @tailwindcss/vite`*~~ [2026-03-20]
 - [X] ~~*Set up Node.js + Express backend with TypeScript: `npm init`, install `ts-node`*~~ [2026-03-20]
 - [ ] Set up Prisma and connect to a local PostgreSQL database
