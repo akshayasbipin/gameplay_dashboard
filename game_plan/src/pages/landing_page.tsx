@@ -1,6 +1,6 @@
 import Wavify from 'react-wavify';
 import { ThemeToggle } from '../components/ThemeToggle';
-import './Landing_page.css';
+import './landing_page.css';
 import { useState, useRef, useEffect } from 'react';
 
 export default function LandingPage() {
