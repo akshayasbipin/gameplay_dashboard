@@ -7,26 +7,27 @@ const COLS = 10;
 const ROWS = 10;
 
 // Snakes: head → tail (player slides DOWN)
+
 const SNAKES: Record<number, number> = {
-  92: 55,
-  99: 66,
-  50: 18,
-  58: 36,
-  53: 7,
+  99: 56,
+  92: 66,
+  58: 7,
+  53: 36,
+  50: 13,
   30: 9,
   21: 4,
-  17: 5,
+  14: 5,
 };
 
 // Ladders: bottom → top (player climbs UP)
 const LADDERS: Record<number, number> = {
   3: 24,
   28: 84,
-  36: 45,
-  32: 62,
-  69: 80,
-  76: 86,
-  71: 93,
+  35: 45,
+  39: 62,
+  69: 71,
+  75: 86,
+  80: 98,
 };
 
 // ─── Types ───────────────────────────────────────────────────────────
