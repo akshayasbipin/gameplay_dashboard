@@ -86,6 +86,12 @@ export default function WordsAreHardGame() {
     handleNewEmoji();
   };
 
+  // Handle draw (no one guessed correctly)
+  const handleDraw = () => {
+    if (!isGameRunning) return;
+    handleNewEmoji();
+  };
+
   // Reset game
   const handleReset = () => {
     setPhase('setup');
@@ -167,6 +173,13 @@ export default function WordsAreHardGame() {
               <div className="emoji-label">
                 Think of a word starting with this letter...
               </div>
+              <button
+                className="draw-btn"
+                onClick={handleDraw}
+                disabled={!isGameRunning}
+              >
+                Draw
+              </button>
             </div>
 
             {/* Players */}
@@ -203,17 +216,33 @@ export default function WordsAreHardGame() {
   // Finished Phase
   if (phase === 'finished' && winner) {
     const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+    
+    // Check if it's a draw (all players have the same score)
+    const allScoresSame = players.every(p => p.score === players[0].score);
+    const isNobodyWins = allScoresSame && players[0].score === 0;
 
     return (
       <div className="words-are-hard-game">
         <div className="finish-screen">
           <h1>🎉 Game Over! 🎉</h1>
 
-          <div className="winner-card">
-            <div className="winner-emoji">{winner.emoji}</div>
-            <div className="winner-name">{winner.name} Wins!</div>
-            <div className="winner-score">{winner.score} Points</div>
-          </div>
+          {isNobodyWins ? (
+            <div className="no-winner-card">
+              <div className="no-winner-title">❌ No One Wins ❌</div>
+              <div className="no-winner-subtitle">Everyone scored 0 points!</div>
+            </div>
+          ) : allScoresSame ? (
+            <div className="draw-card">
+              <div className="draw-title">🤝 It's a Draw! 🤝</div>
+              <div className="draw-subtitle">Everyone has {players[0].score} points!</div>
+            </div>
+          ) : (
+            <div className="winner-card">
+              <div className="winner-emoji">{winner.emoji}</div>
+              <div className="winner-name">{winner.name} Wins!</div>
+              <div className="winner-score">{winner.score} Points</div>
+            </div>
+          )}
 
           <div className="final-scores">
             <h3>Final Scores</h3>

@@ -215,6 +215,36 @@
   font-weight: 500;
 }
 
+.draw-btn {
+  margin-top: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  background: #6c5ce7;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
+}
+
+.draw-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(108, 92, 231, 0.6);
+  background: #5f4fd4;
+}
+
+.draw-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.draw-btn:active {
+  transform: scale(0.98);
+}
+
 /* ─── Players Section ─── */
 .players-container {
   display: flex;
@@ -342,6 +372,46 @@
   color: #666;
 }
 
+.draw-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.draw-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.draw-subtitle {
+  font-size: 1.2rem;
+  color: #e0e0e0;
+}
+
+.no-winner-card {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+}
+
+.no-winner-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.no-winner-subtitle {
+  font-size: 1.2rem;
+  color: #efefef;
+}
+
 .final-scores {
   margin-top: 2rem;
   text-align: left;
@@ -460,5 +530,11 @@
   .game-header {
     flex-direction: column-reverse;
     gap: 1rem;
+  }
+
+  .draw-btn {
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
   }
 }
