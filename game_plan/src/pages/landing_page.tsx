@@ -42,6 +42,7 @@ export default function LandingPage() {
           <p className="hero-subtitle">choose ur adventure</p>
           <div className="hero-nav">
             <a href="/snakes-and-ladders" className="game-link">Snakes and Ladders</a>
+            <a href="/words-are-hard" className="game-link">Words are hard</a>
             <a href="#" className="game-link">Uno</a>
             <a href="#" className="game-link">Ludo</a>
             <a href="#" className="game-link">Scribble</a>
