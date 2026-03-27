@@ -96,13 +96,14 @@
 /* ─── Game Screen ─── */
 .game-screen {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem;
+  padding: 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow-y: auto;
 }
 
 .game-header {
@@ -111,17 +112,17 @@
   align-items: center;
   width: 100%;
   max-width: 1200px;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .timer {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   color: white;
   background: rgba(0, 0, 0, 0.3);
-  padding: 1rem 2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 50px;
-  min-width: 150px;
+  min-width: 130px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
@@ -167,10 +168,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex: 1;
   width: 100%;
-  gap: 3rem;
+  gap: 1.5rem;
   position: relative;
 }
 
@@ -180,19 +181,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
   width: 100%;
 }
 
 .emoji-circle {
-  width: 200px;
-  height: 200px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 120px;
+  font-size: 80px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   animation: slideInEmoji 0.3s ease-out;
 }
@@ -210,15 +210,15 @@
 
 .emoji-label {
   color: white;
-  font-size: 1.2rem;
-  margin-top: 1rem;
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
   font-weight: 500;
 }
 
 .draw-btn {
-  margin-top: 1.5rem;
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.9rem;
   background: #d4ff00;
   color: rgb(0, 0, 0);
   border: none;
@@ -249,7 +249,7 @@
 .players-container {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.2rem;
   flex-wrap: wrap;
   width: 100%;
   max-width: 1200px;
@@ -258,8 +258,8 @@
 .player-card {
   background: white;
   border-radius: 20px;
-  padding: 2rem;
-  min-width: 200px;
+  padding: 1.5rem 1.2rem;
+  min-width: 160px;
   text-align: center;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
   border-top: 5px solid;
@@ -267,7 +267,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .player-card:hover {
@@ -276,33 +276,33 @@
 }
 
 .player-emoji {
-  font-size: 2.5rem;
+  font-size: 2rem;
 }
 
 .player-name {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #333;
 }
 
 .player-score {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #667eea;
 }
 
 .score-label {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #999;
-  margin-top: -0.5rem;
+  margin-top: -0.3rem;
 }
 
 .player-button {
-  width: 100px;
-  height: 100px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: none;
-  font-size: 2.5rem;
+  font-size: 2rem;
   cursor: pointer;
   font-weight: bold;
   color: white;
@@ -502,24 +502,24 @@
   }
 
   .emoji-circle {
-    width: 150px;
-    height: 150px;
-    font-size: 80px;
+    width: 120px;
+    height: 120px;
+    font-size: 70px;
   }
 
   .players-container {
-    gap: 1rem;
+    gap: 0.8rem;
   }
 
   .player-card {
-    min-width: 150px;
-    padding: 1.5rem 1rem;
+    min-width: 140px;
+    padding: 1.2rem 0.8rem;
   }
 
   .player-button {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
   }
 
   .timer {
