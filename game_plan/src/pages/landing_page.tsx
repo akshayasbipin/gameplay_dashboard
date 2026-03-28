@@ -42,9 +42,11 @@ export default function LandingPage() {
           <p className="hero-subtitle">choose ur adventure</p>
           <div className="hero-nav">
             <a href="/snakes-and-ladders" className="game-link">Snakes and Ladders</a>
+            <a href="/words-are-hard" className="game-link">Words are hard</a>
+            <a href="/scribble" className="game-link">Scribble</a>
+            <a href="/murdoku" className="game-link">Murdoku</a>
             <a href="#" className="game-link">Uno</a>
             <a href="#" className="game-link">Ludo</a>
-            <a href="#" className="game-link">Scribble</a>
           </div>
         </div>
 
@@ -63,7 +65,11 @@ export default function LandingPage() {
             <ThemeToggle />
           </div>
           <div className="sound-icon" onClick={toggleSound} style={{ cursor: 'pointer' }}>
-            {isMuted ? '🔇' : '🔊'}
+            <img 
+              src={isMuted ? '/bgm_1.jpg' : '/bgm_2.jpg'} 
+              alt={isMuted ? 'Muted' : 'Playing'} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
         </div>
       </section>
