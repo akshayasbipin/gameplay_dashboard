@@ -1,22 +1,38 @@
-# gameplay_dashboard
+# Game Plan
 
-The games we play will now be hosted here:
+A collection of fun multiplayer games in one place. Play classic games like Snakes and Ladders, Words are Hard, and more!
 
-[] Snakes and Ladders
+## Games
 
-[] Words are Hard
+- [] Snakes and Ladders
+- [x] Words are Hard
+- [ ] Ludo
+- [ ] Uno
+- [x] Scribble and quick draw: currently goes to the actual game
+- [x] Muduroko : currently goes to the actual game
 
-[] Ludo
+## Features
 
-[] Uno
+- [ ] Light/Dark Theme
+- [ ] Create Backend
+- [ ] Review and improve each page 
+- [ ] Multi-player Support
+- [ ] Lobby System (for common players)
+- [ ] Hosting & Deployment
 
-[] Scribble
+## Getting Started
 
-[] Muduroko
+1. Clone the repository, Develop branch
+2. Install dependencies: `npm install`
+3. Run the development server: `npm run dev`
+4. Open your browser and start playing!
 
-What to imporve: 
-[] Light/Dark Theme
+## Built With
 
-[] Hosting
+- React + TypeScript
+- Vite
+- CSS3 with Theme Support
 
-[] share the link, aka lobby for common players
+---
+
+**Last Updated**: March 28, 2026
