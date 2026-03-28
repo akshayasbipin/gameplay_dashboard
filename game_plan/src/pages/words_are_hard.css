@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 .words-are-hard-game {
   min-height: 100vh;
   display: flex;
@@ -5,32 +8,37 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Arial', sans-serif;
+  background: white;
+  font-family: 'Pixelify Sans', sans-serif;
   position: relative;
 }
 
 /* ─── Setup Phase ─── */
 .setup-screen {
   background: white;
-  border-radius: 20px;
+  border: 3px solid #333;
   padding: 3rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
+  border-radius: 0px;
 }
 
 .setup-screen h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: #333;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .setup-screen p {
-  font-size: 1.1rem;
-  color: #666;
+  font-size: 0.7rem;
+  color: #333;
   margin-bottom: 2rem;
+  font-family: 'Pixelify Sans', sans-serif;
+  line-height: 1.6;
 }
 
 .player-count-selector {
@@ -42,49 +50,54 @@
 }
 
 .player-count-btn {
-  width: 80px;
-  height: 80px;
-  border: 3px solid #667eea;
-  border-radius: 50%;
-  font-size: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border: 3px solid #333;
+  border-radius: 0px;
+  font-size: 1.2rem;
   font-weight: bold;
   background: white;
-  color: #667eea;
+  color: #333;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3);
 }
 
 .player-count-btn:hover {
-  transform: scale(1.1);
-  background: #667eea;
-  color: white;
+  background: #FFD700;
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
 }
 
 .player-count-btn.selected {
-  background: #667eea;
-  color: white;
+  background: #FFD700;
+  color: #333;
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
 }
 
 .start-game-btn {
   margin-top: 2rem;
   padding: 1rem 2.5rem;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 50px;
+  font-size: 0.7rem;
+  background: #FFD700;
+  color: #333;
+  border: 3px solid #333;
+  border-radius: 0px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .start-game-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.3);
 }
 
 .start-game-btn:disabled {
@@ -102,7 +115,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   overflow-y: auto;
 }
 
@@ -116,19 +129,22 @@
 }
 
 .timer {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: white;
-  background: rgba(0, 0, 0, 0.3);
+  color: #333;
+  background: white;
   padding: 0.8rem 1.5rem;
-  border-radius: 50px;
+  border: 3px solid #333;
+  border-radius: 0px;
   min-width: 130px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
 }
 
 .timer.warning {
-  color: #ff6b6b;
+  color: #FFD700;
+  background: white;
   animation: pulse 0.5s infinite alternate;
 }
 
@@ -143,20 +159,23 @@
 
 .reset-btn {
   padding: 0.8rem 2rem;
-  font-size: 1rem;
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 50px;
+  font-size: 0.6rem;
+  background: white;
+  color: #333;
+  border: 3px solid #333;
+  border-radius: 0px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .reset-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+  background: #FFD700;
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
 }
 
 .reset-btn:disabled {
@@ -187,14 +206,15 @@
 .emoji-circle {
   width: 140px;
   height: 140px;
-  border-radius: 50%;
+  border-radius: 0px;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 80px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
   animation: slideInEmoji 0.3s ease-out;
+  border: 3px solid #333;
 }
 
 @keyframes slideInEmoji {
@@ -209,30 +229,33 @@
 }
 
 .emoji-label {
-  color: white;
-  font-size: 0.9rem;
+  color: #333;
+  font-size: 0.65rem;
   margin-top: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .draw-btn {
   margin-top: 1rem;
-  padding: 0.6rem 1.5rem;
-  font-size: 0.9rem;
-  background: #d4ff00;
-  color: rgb(0, 0, 0);
-  border: none;
-  border-radius: 50px;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.7rem;
+  background: #FFD700;
+  color: #333;
+  border: 3px solid #333;
+  border-radius: 0px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .draw-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(108, 92, 231, 0.6);
-  background: #5f4fd4;
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
 }
 
 .draw-btn:disabled {
@@ -256,13 +279,13 @@
 }
 
 .player-card {
-  background: white;
-  border-radius: 20px;
+  background: #f5f5f5;
+  border-radius: 0px;
   padding: 1.5rem 1.2rem;
   min-width: 160px;
   text-align: center;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  border-top: 5px solid;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  border: 3px solid #333;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -271,8 +294,8 @@
 }
 
 .player-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px) translateX(-3px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
 }
 
 .player-emoji {
@@ -280,38 +303,46 @@
 }
 
 .player-name {
-  font-size: 1rem;
+  font-size: 0.6rem;
   font-weight: bold;
   color: #333;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .player-score {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #667eea;
+  color: #FFD700;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .score-label {
-  font-size: 0.75rem;
-  color: #999;
+  font-size: 0.5rem;
+  color: #666;
   margin-top: -0.3rem;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .player-button {
   width: 70px;
   height: 70px;
-  border-radius: 50%;
-  border: none;
+  border-radius: 0px;
+  border: 3px solid #333;
   font-size: 2rem;
   cursor: pointer;
   font-weight: bold;
   color: white;
+  background: #FFD700;
   transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+  font-family: 'Press Start 2P', cursive;
 }
 
 .player-button:hover {
-  transform: scale(1.1);
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
 }
 
 .player-button:active {
@@ -321,13 +352,14 @@
 /* ─── Finish Screen ─── */
 .finish-screen {
   background: white;
-  border-radius: 20px;
+  border: 3px solid #333;
   padding: 3rem;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.3);
   text-align: center;
   max-width: 600px;
   width: 100%;
   animation: slideUp 0.5s ease-out;
+  border-radius: 0px;
 }
 
 @keyframes slideUp {
@@ -342,17 +374,20 @@
 }
 
 .finish-screen h1 {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   color: #333;
   margin-bottom: 1rem;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .winner-card {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  border-radius: 15px;
+  background: #FFD700;
+  border-radius: 0px;
   padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  border: 3px solid #333;
 }
 
 .winner-emoji {
@@ -361,55 +396,66 @@
 }
 
 .winner-name {
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: #333;
   margin-bottom: 0.5rem;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .winner-score {
-  font-size: 1.5rem;
-  color: #666;
+  font-size: 1rem;
+  color: #333;
+  font-family: 'Pixelify Sans', sans-serif;
 }
 
 .draw-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15px;
+  background: #f5f5f5;
+  border-radius: 0px;
   padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  border: 3px solid #333;
 }
 
 .draw-title {
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  color: white;
+  color: #333;
   margin-bottom: 1rem;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .draw-subtitle {
-  font-size: 1.2rem;
-  color: #e0e0e0;
+  font-size: 0.8rem;
+  color: #333;
+  font-family: 'Pixelify Sans', sans-serif;
 }
 
 .no-winner-card {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
-  border-radius: 15px;
+  background: #f5f5f5;
+  border-radius: 0px;
   padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  border: 3px solid #333;
 }
 
 .no-winner-title {
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  color: white;
+  color: #333;
   margin-bottom: 1rem;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .no-winner-subtitle {
-  font-size: 1.2rem;
-  color: #efefef;
+  font-size: 0.8rem;
+  color: #333;
+  font-family: 'Pixelify Sans', sans-serif;
 }
 
 .final-scores {
@@ -418,67 +464,79 @@
 }
 
 .final-scores h3 {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   color: #333;
   margin-bottom: 1rem;
   text-align: center;
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .score-item {
   display: flex;
   justify-content: space-between;
   padding: 0.8rem;
-  background: #f5f5f5;
-  border-radius: 10px;
+  background: white;
+  border: 2px solid #333;
+  border-radius: 0px;
   margin-bottom: 0.5rem;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
 }
 
 .score-item-name {
   font-weight: bold;
   color: #333;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .score-item-value {
   font-weight: bold;
-  color: #667eea;
+  color: #FFD700;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .play-again-btn {
   margin-top: 2rem;
+  margin-bottom: 1rem;
   padding: 1rem 2.5rem;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 50px;
+  font-size: 0.7rem;
+  background: #FFD700;
+  color: #333;
+  border: 3px solid #333;
+  border-radius: 0px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .play-again-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.3);
 }
 
 .back-home-btn {
-  margin-top: 1rem;
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  background: #999;
-  color: white;
-  border: none;
-  border-radius: 50px;
+  margin-top: 0;
+  padding: 1rem 2.5rem;
+  font-size: 0.7rem;
+  background: white;
+  color: #333;
+  border: 3px solid #333;
+  border-radius: 0px;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
+  font-family: 'Press Start 2P', cursive;
+  text-transform: uppercase;
 }
 
 .back-home-btn:hover {
-  background: #777;
-  transform: translateY(-2px);
+  background: #FFD700;
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── Responsive ─── */
@@ -492,13 +550,13 @@
   }
 
   .setup-screen h1 {
-    font-size: 2rem;
+    font-size: 1.2rem;
   }
 
   .player-count-btn {
-    width: 60px;
-    height: 60px;
-    font-size: 1.2rem;
+    width: 50px;
+    height: 50px;
+    font-size: 1rem;
   }
 
   .emoji-circle {
@@ -523,7 +581,7 @@
   }
 
   .timer {
-    font-size: 2rem;
+    font-size: 1.2rem;
     padding: 0.8rem 1.5rem;
   }
 
@@ -535,6 +593,6 @@
   .draw-btn {
     margin-top: 1rem;
     padding: 0.6rem 1.5rem;
-    font-size: 0.9rem;
+    font-size: 0.6rem;
   }
 }

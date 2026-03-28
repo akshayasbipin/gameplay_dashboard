@@ -1,33 +1,21 @@
 import Wavify from 'react-wavify';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { AudioToggle } from '../components/AudioToggle';
+import { useAudio } from '../context/AudioContext';
 import './landing_page.css';
-import { useState, useRef, useEffect } from 'react';
 
 export default function LandingPage() {
-  const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { bgmRef, playButtonClick } = useAudio();
 
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch((error) => {
-          console.log('Audio autoplay failed:', error);
-        });
-      }
-    }
-  }, [isMuted]);
-
-  const toggleSound = () => {
-    setIsMuted(!isMuted);
+  const handleGameLinkClick = () => {
+    playButtonClick();
   };
 
   return (
     <div className="landing-page">
       {/* Background Music */}
       <audio
-        ref={audioRef}
+        ref={bgmRef}
         loop
         preload="auto"
         style={{ display: 'none' }}
@@ -41,10 +29,10 @@ export default function LandingPage() {
           <h1 className="hero-title">hello!</h1>
           <p className="hero-subtitle">choose ur adventure</p>
           <div className="hero-nav">
-            <a href="/snakes-and-ladders" className="game-link">Snakes and Ladders</a>
-            <a href="/words-are-hard" className="game-link">Words are hard</a>
-            <a href="/scribble" className="game-link">Scribble</a>
-            <a href="/murdoku" className="game-link">Murdoku</a>
+            <a href="/snakes-and-ladders" className="game-link" onClick={handleGameLinkClick}>Snakes and Ladders</a>
+            <a href="/words-are-hard" className="game-link" onClick={handleGameLinkClick}>Words are hard</a>
+            <a href="/scribble" className="game-link" onClick={handleGameLinkClick}>Scribble</a>
+            <a href="/murdoku" className="game-link" onClick={handleGameLinkClick}>Murdoku</a>
             <a href="#" className="game-link">Uno</a>
             <a href="#" className="game-link">Ludo</a>
           </div>
@@ -64,12 +52,8 @@ export default function LandingPage() {
           <div className="theme-toggle-position">
             <ThemeToggle />
           </div>
-          <div className="sound-icon" onClick={toggleSound} style={{ cursor: 'pointer' }}>
-            <img 
-              src={isMuted ? '/bgm_1.jpg' : '/bgm_2.jpg'} 
-              alt={isMuted ? 'Muted' : 'Playing'} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+          <div>
+            <AudioToggle />
           </div>
         </div>
       </section>

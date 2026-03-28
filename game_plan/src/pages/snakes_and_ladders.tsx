@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAudio } from '../context/AudioContext';
+import { AudioToggle } from '../components/AudioToggle';
 import './snakes_and_ladders.css';
 
 // ─── Board constants ────────────────────────────────────────────────
@@ -53,6 +56,7 @@ interface GameState {
   winner: Player | null;
   lastEvent: string; // snake / ladder message
   botThinking: boolean;
+  snakeHit: boolean; // Track if a snake was hit this turn
 }
 
 // ─── Player config ───────────────────────────────────────────────────
@@ -160,6 +164,8 @@ function DiceFace({ value }: { value: number }) {
 
 // ─── Main component ───────────────────────────────────────────────────
 export default function SnakesAndLaddersGame() {
+  const navigate = useNavigate();
+  const { bgmRef, playButtonClick, playSnakeHiss, playVictory } = useAudio();
   const [playerCount, setPlayerCount] = useState(2);
   const [botCount, setBotCount] = useState(0); // number of CPU opponents
   const [playerNames, setPlayerNames] = useState<string[]>(
@@ -180,6 +186,7 @@ export default function SnakesAndLaddersGame() {
     winner: null,
     lastEvent: '',
     botThinking: false,
+    snakeHit: false,
   });
 
   const botTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -218,6 +225,9 @@ export default function SnakesAndLaddersGame() {
       i === state.currentPlayerIndex ? { ...p, position: newPos, finished: newPos === 100 } : p
     );
 
+    // Detect if snake was hit
+    const snakeHit = SNAKES[player.position + dice] !== undefined;
+
     // Check win
     if (newPos === BOARD_SIZE) {
       return {
@@ -229,15 +239,26 @@ export default function SnakesAndLaddersGame() {
         lastEvent: `🎉 ${player.name} reached 100 and WINS!`,
         isRolling: false,
         botThinking: false,
+        snakeHit,
       };
     }
 
-    // Advance to next player (skip finished players)
-    let nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
-    let tries = 0;
-    while (updatedPlayers[nextIndex].finished && tries < state.players.length) {
-      nextIndex = (nextIndex + 1) % state.players.length;
-      tries++;
+    // Advance to next player (skip finished players) — UNLESS rolled a 6!
+    let nextIndex = state.currentPlayerIndex;
+    let isReroll = false;
+
+    if (dice === 6) {
+      // Rolled a 6 — same player gets a re-roll!
+      isReroll = true;
+      event = `${player.name} rolled 6! 🎲 Re-rolling...`;
+    } else {
+      // Advance to next player
+      nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
+      let tries = 0;
+      while (updatedPlayers[nextIndex].finished && tries < state.players.length) {
+        nextIndex = (nextIndex + 1) % state.players.length;
+        tries++;
+      }
     }
 
     return {
@@ -247,7 +268,8 @@ export default function SnakesAndLaddersGame() {
       currentPlayerIndex: nextIndex,
       lastEvent: event,
       isRolling: false,
-      botThinking: false,
+      botThinking: isReroll && updatedPlayers[state.currentPlayerIndex]?.isBot ? true : false,
+      snakeHit,
     };
   }, []);
 
@@ -265,8 +287,8 @@ export default function SnakesAndLaddersGame() {
       if (rollAnimRef.current) clearInterval(rollAnimRef.current);
       setRollingAnim(false);
 
-      setGameState(() => {
-        const next = computeRoll(currentState);
+      setGameState((prevState) => {
+        const next = computeRoll(prevState);
         setAnimDice(next.diceValue ?? 1);
 
         // Schedule bot turn if needed
@@ -297,6 +319,22 @@ export default function SnakesAndLaddersGame() {
       if (botTimerRef.current) clearTimeout(botTimerRef.current);
     };
   }, [gameState.botThinking, gameState.currentPlayerIndex, doRoll, gameState]);
+
+  // ── Play snake hiss sound when a snake is hit ──
+  useEffect(() => {
+    if (gameState.snakeHit && gameState.phase === 'playing') {
+      playSnakeHiss();
+      // Reset snakeHit after playing sound
+      setGameState(prev => ({ ...prev, snakeHit: false }));
+    }
+  }, [gameState.snakeHit, gameState.phase, playSnakeHiss]);
+
+  // ── Play victory sound when game finishes ──
+  useEffect(() => {
+    if (gameState.phase === 'finished' && gameState.winner) {
+      playVictory();
+    }
+  }, [gameState.phase, gameState.winner, playVictory]);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
@@ -352,6 +390,7 @@ export default function SnakesAndLaddersGame() {
       winner: null,
       lastEvent: 'Game started! All players begin at position 0.',
       botThinking: firstIsBot,
+      snakeHit: false,
     });
   }
 
@@ -369,6 +408,7 @@ export default function SnakesAndLaddersGame() {
       winner: null,
       lastEvent: '',
       botThinking: false,
+      snakeHit: false,
     });
   }
 
@@ -403,11 +443,12 @@ export default function SnakesAndLaddersGame() {
           <div className="lobby-section">
             <label>Total Players (including you):</label>
             <div className="player-count-selector">
-              {[1, 2, 3, 4, 5, 6].map(n => (
+              {[2, 3, 4, 5, 6].map(n => (
                 <button
                   key={n}
                   className={`count-btn ${playerCount === n ? 'active' : ''}`}
                   onClick={() => {
+                    playButtonClick();
                     setPlayerCount(n);
                     setBotCount(prev => Math.min(prev, n - 1));
                   }}
@@ -426,7 +467,10 @@ export default function SnakesAndLaddersGame() {
                 <button
                   key={n}
                   className={`count-btn ${botCount === n ? 'active' : ''}`}
-                  onClick={() => setBotCount(n)}
+                  onClick={() => {
+                    playButtonClick();
+                    setBotCount(n);
+                  }}
                 >
                   {n}
                 </button>
@@ -440,7 +484,10 @@ export default function SnakesAndLaddersGame() {
 
           {/* Player names */}
           <div className="lobby-section">
-            <button className="btn-secondary" onClick={() => setShowNames(v => !v)}>
+            <button className="btn-secondary" onClick={() => {
+              playButtonClick();
+              setShowNames(v => !v);
+            }}>
               {showNames ? '▲ Hide Names' : '▼ Set Player Names'}
             </button>
 
@@ -481,15 +528,26 @@ export default function SnakesAndLaddersGame() {
             <label>Share match link:</label>
             <div className="match-id-display">
               <code>{`${window.location.origin}?match=${gameState.matchId}`}</code>
-              <button className="btn-copy" onClick={copyLink}>
+              <button className="btn-copy" onClick={() => {
+                playButtonClick();
+                copyLink();
+              }}>
                 {copied ? '✓ Copied!' : 'Copy'}
               </button>
             </div>
           </div>
 
-          <button className="btn-primary" onClick={startGame}>
+          <button className="btn-primary" onClick={() => {
+            playButtonClick();
+            startGame();
+          }}>
             🎲 Start Game
           </button>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
         </div>
       </div>
     );
@@ -526,7 +584,10 @@ export default function SnakesAndLaddersGame() {
 
             <button
               className="btn-roll"
-              onClick={() => doRoll(gameState)}
+              onClick={() => {
+                playButtonClick();
+                doRoll(gameState);
+              }}
               disabled={!canRoll}
             >
               {rollingAnim
@@ -554,7 +615,7 @@ export default function SnakesAndLaddersGame() {
             <div
               className="game-board"
               style={{
-                backgroundImage: "url('./snakes_ladders_board.jpg')",
+                backgroundImage: "url('./snakes_ladders_board_light.jpg')",
                 backgroundSize: '100% 100%',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -621,9 +682,17 @@ export default function SnakesAndLaddersGame() {
             ))}
           </div>
 
-          <button className="btn-secondary btn-reset" onClick={resetGame}>
+          <button className="btn-secondary btn-reset" onClick={() => {
+            playButtonClick();
+            resetGame();
+          }}>
             ↩ Back to Lobby
           </button>
+
+          {/* Audio Toggle */}
+          <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+            <AudioToggle />
+          </div>
         </div>
       </div>
     );
@@ -662,8 +731,14 @@ export default function SnakesAndLaddersGame() {
           </div>
 
           <div className="win-actions">
-            <button className="btn-primary" onClick={startGame}>🔄 Play Again</button>
-            <button className="btn-secondary" onClick={resetGame}>🏠 Lobby</button>
+            <button className="btn-primary" onClick={() => {
+              playButtonClick();
+              startGame();
+            }}>Play Again</button>
+            <button className="btn-secondary" onClick={() => {
+              playButtonClick();
+              navigate('/');
+            }}>Back to Home</button>
           </div>
         </div>
       </div>

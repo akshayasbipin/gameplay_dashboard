@@ -115,11 +115,11 @@
   }
 }
 
-.theme-toggle-murdoku {
+/* .theme-toggle-murdoku {
   margin-top: 2rem;
   display: flex;
   justify-content: center;
-}
+} */
 
 /* Responsive Design */
 @media (max-width: 768px) {
