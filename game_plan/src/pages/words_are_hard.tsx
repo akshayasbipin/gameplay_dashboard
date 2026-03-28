@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAudio } from '../context/AudioContext';
+import { AudioToggle } from '../components/AudioToggle';
 import './words_are_hard.css';
 import {
   initializePlayers,
@@ -10,10 +12,11 @@ import {
   type Player,
 } from '../utils/wordsAreHardUtils';
 
-type GamePhase = 'setup' | 'playing' | 'finished';
+type GamePhase = 'setup' | 'customizing' | 'countdown' | 'playing' | 'finished';
 
 export default function WordsAreHardGame() {
   const navigate = useNavigate();
+  const { bgmRef, playButtonClick, playVictory } = useAudio();
   
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
@@ -23,6 +26,26 @@ export default function WordsAreHardGame() {
   const [timeLeft, setTimeLeft] = useState<number>(GAME_DURATION);
   const [isGameRunning, setIsGameRunning] = useState<boolean>(false);
   const [winner, setWinner] = useState<Player | null>(null);
+  const [countdownValue, setCountdownValue] = useState<number>(3);
+
+  // Countdown effect
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+
+    if (countdownValue <= 0) {
+      setPhase('playing');
+      setCurrentEmoji('');
+      setTimeLeft(GAME_DURATION);
+      setIsGameRunning(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdownValue(prev => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [phase, countdownValue]);
 
   // Initialize emoji when game starts
   useEffect(() => {
@@ -52,19 +75,40 @@ export default function WordsAreHardGame() {
     return () => clearTimeout(timer);
   }, [isGameRunning, timeLeft, players]);
 
+  // Play victory sound when game finishes
+  useEffect(() => {
+    if (phase === 'finished' && winner) {
+      playVictory();
+    }
+  }, [phase, winner, playVictory]);
+
   // Handle player count selection
   const handlePlayerCountSelect = (count: number) => {
     setNumPlayers(count);
   };
 
-  // Start game
+  // Start game - move to customizing phase
   const handleStartGame = () => {
     const newPlayers = initializePlayers(numPlayers);
     setPlayers(newPlayers);
-    setCurrentEmoji('');
-    setTimeLeft(GAME_DURATION);
-    setIsGameRunning(true);
-    setPhase('playing');
+    setPhase('customizing');
+  };
+
+  // Start countdown
+  const handleStartCountdown = () => {
+    setCountdownValue(3);
+    setPhase('countdown');
+  };
+
+  // Handle player name change
+  const handlePlayerNameChange = (playerId: string, newName: string) => {
+    setPlayers(prev =>
+      prev.map(player =>
+        player.id === playerId
+          ? { ...player, name: newName }
+          : player
+      )
+    );
   };
 
   // Handle emoji refresh
@@ -109,9 +153,10 @@ export default function WordsAreHardGame() {
     setPlayers(newPlayers);
     setCurrentEmoji('');
     setTimeLeft(GAME_DURATION);
-    setIsGameRunning(true);
+    setIsGameRunning(false);
     setWinner(null);
-    setPhase('playing');
+    setCountdownValue(3);
+    setPhase('customizing');
   };
 
   // Setup Phase
@@ -129,16 +174,110 @@ export default function WordsAreHardGame() {
               <button
                 key={count}
                 className={`player-count-btn ${numPlayers === count ? 'selected' : ''}`}
-                onClick={() => handlePlayerCountSelect(count)}
+                onClick={() => {
+                  playButtonClick();
+                  handlePlayerCountSelect(count);
+                }}
               >
                 {count}
               </button>
             ))}
           </div>
 
-          <button className="start-game-btn" onClick={handleStartGame}>
+          <button className="start-game-btn" onClick={() => {
+            playButtonClick();
+            handleStartGame();
+          }}>
             Start Game
           </button>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
+        </div>
+      </div>
+    );
+  }
+
+  // Customizing Phase - Player Names
+  if (phase === 'customizing') {
+    return (
+      <div className="words-are-hard-game">
+        <div className="setup-screen">
+          <h1>Enter Names</h1>
+          <p>Customize player names before starting:</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '2rem' }}>
+            {players.map((player) => (
+              <div key={player.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
+                <span style={{ fontSize: '1.5rem' }}>{player.emoji}</span>
+                <input
+                  type="text"
+                  value={player.name}
+                  onChange={(e) => handlePlayerNameChange(player.id, e.target.value)}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    fontSize: '0.8rem',
+                    border: '2px solid #333',
+                    borderRadius: '0px',
+                    fontFamily: "'Pixelify Sans', sans-serif",
+                    maxWidth: '200px',
+                  }}
+                  placeholder="Enter name"
+                />
+              </div>
+            ))}
+          </div>
+
+          <button className="start-game-btn" onClick={() => {
+            playButtonClick();
+            handleStartCountdown();
+          }} style={{ marginTop: '3rem' }}>
+            Ready? Lets Go!
+          </button>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
+        </div>
+      </div>
+    );
+  }
+
+  // Countdown Phase
+  if (phase === 'countdown') {
+    return (
+      <div className="words-are-hard-game">
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          gap: '2rem',
+        }}>
+          <div style={{
+            fontSize: '6rem',
+            fontFamily: "'Press Start 2P', cursive",
+            color: '#333',
+            width: '120px',
+            height: '120px',
+            border: '3px solid #333',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#FFD700',
+            boxShadow: '8px 8px 0px rgba(0, 0, 0, 0.3)',
+          }}>
+            {countdownValue > 0 ? countdownValue : 'GO!'}
+          </div>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
         </div>
       </div>
     );
@@ -156,7 +295,10 @@ export default function WordsAreHardGame() {
             </div>
             <button
               className="reset-btn"
-              onClick={handleReset}
+              onClick={() => {
+                playButtonClick();
+                handleReset();
+              }}
               disabled={!isGameRunning}
             >
               Reset Game
@@ -175,10 +317,13 @@ export default function WordsAreHardGame() {
               </div>
               <button
                 className="draw-btn"
-                onClick={handleDraw}
+                onClick={() => {
+                  playButtonClick();
+                  handleDraw();
+                }}
                 disabled={!isGameRunning}
               >
-                Draw
+                Skip
               </button>
             </div>
 
@@ -199,7 +344,10 @@ export default function WordsAreHardGame() {
                   <button
                     className="player-button"
                     style={{ backgroundColor: player.color }}
-                    onClick={() => handleScoreIncrement(player.id)}
+                    onClick={() => {
+                      playButtonClick();
+                      handleScoreIncrement(player.id);
+                    }}
                     disabled={!isGameRunning}
                   >
                     +
@@ -208,6 +356,11 @@ export default function WordsAreHardGame() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
         </div>
       </div>
     );
@@ -256,12 +409,23 @@ export default function WordsAreHardGame() {
             ))}
           </div>
 
-          <button className="play-again-btn" onClick={handlePlayAgain}>
+          <button className="play-again-btn" onClick={() => {
+            playButtonClick();
+            handlePlayAgain();
+          }}>
             Play Again
           </button>
-          <button className="back-home-btn" onClick={() => navigate('/')}>
+          <button className="back-home-btn" onClick={() => {
+            playButtonClick();
+            navigate('/');
+          }}>
             Back to Home
           </button>
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          <AudioToggle />
         </div>
       </div>
     );
