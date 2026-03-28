@@ -4,7 +4,7 @@ A collection of fun multiplayer games in one place. Play classic games like Snak
 
 ## Games
 
-- [] Snakes and Ladders
+- [ ] Snakes and Ladders
 - [x] Words are Hard
 - [ ] Ludo
 - [ ] Uno
