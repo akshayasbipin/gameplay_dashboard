@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import GameLobby from '../components/GameLobby';
+import { 
+  createGameRoom, 
+  getRoomPlayers, 
+  initializeGameState, 
+  recordPlayerMove,
+  recordGameWinner,
+  subscribeToGameMoves,
+  updateRoomStatus,
+  subscribeToRoom,
+  getGameStateForRoom
+} from '../lib/multiplayerService';
 import { useAudio } from '../context/AudioContext';
 import { AudioToggle } from '../components/AudioToggle';
 import './snakes_and_ladders.css';
@@ -44,7 +57,7 @@ interface Player {
   finished: boolean;
 }
 
-type Phase = 'lobby' | 'playing' | 'finished';
+type Phase = 'mode-select' | 'join-screen' | 'lobby' | 'game-lobby' | 'playing' | 'finished';
 
 interface GameState {
   phase: Phase;
@@ -165,6 +178,15 @@ function DiceFace({ value }: { value: number }) {
 // ─── Main component ───────────────────────────────────────────────────
 export default function SnakesAndLaddersGame() {
   const navigate = useNavigate();
+  const { currentPlayer: authPlayer } = useAuth();
+  
+  const [gameMode, setGameMode] = useState<'single' | 'host' | 'join'>('single'); // single=local, host=create room, join=join room
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  
   const { bgmRef, playButtonClick, playSnakeHiss, playVictory } = useAudio();
   const [playerCount, setPlayerCount] = useState(2);
   const [botCount, setBotCount] = useState(0); // number of CPU opponents
@@ -177,7 +199,7 @@ export default function SnakesAndLaddersGame() {
   const [animDice, setAnimDice] = useState(1); // dice face shown during animation
 
   const [gameState, setGameState] = useState<GameState>({
-    phase: 'lobby',
+    phase: 'mode-select',
     players: [],
     currentPlayerIndex: 0,
     diceValue: null,
@@ -191,6 +213,11 @@ export default function SnakesAndLaddersGame() {
 
   const botTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rollAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const gameMovesSubscriptionRef = useRef<any>(null);
+  const remoteGameStateRef = useRef<any>(null);
+  const gameStartSubscriptionRef = useRef<any>(null);
+  const localPlayerIdRef = useRef<string | null>(null);
+  const gameInitializedRef = useRef<boolean>(false);
 
   // ── Core roll logic (pure — takes current state, returns next state) ──
   const computeRoll = useCallback((state: GameState): GameState => {
@@ -230,6 +257,14 @@ export default function SnakesAndLaddersGame() {
 
     // Check win
     if (newPos === BOARD_SIZE) {
+      // Broadcast winner if multiplayer
+      if (isMultiplayer && roomId) {
+        console.log(`🏆 Broadcasting winner: ${player.name}`);
+        recordGameWinner(roomId, player.id, player.name, updatedPlayers).catch(err => {
+          console.error('Error recording winner:', err);
+        });
+      }
+
       return {
         ...state,
         players: updatedPlayers,
@@ -271,7 +306,7 @@ export default function SnakesAndLaddersGame() {
       botThinking: isReroll && updatedPlayers[state.currentPlayerIndex]?.isBot ? true : false,
       snakeHit,
     };
-  }, []);
+  }, [isMultiplayer, roomId]);
 
   // ── Animated roll then apply result ──
   const doRoll = useCallback((currentState: GameState) => {
@@ -287,21 +322,40 @@ export default function SnakesAndLaddersGame() {
       if (rollAnimRef.current) clearInterval(rollAnimRef.current);
       setRollingAnim(false);
 
-      setGameState((prevState) => {
-        const next = computeRoll(prevState);
-        setAnimDice(next.diceValue ?? 1);
+      const next = computeRoll(currentState);
+      setAnimDice(next.diceValue ?? 1);
 
-        // Schedule bot turn if needed
-        if (
-          next.phase === 'playing' &&
-          next.players[next.currentPlayerIndex]?.isBot
-        ) {
-          next.botThinking = true;
-        }
-        return next;
-      });
+      // If multiplayer, broadcast the move to database
+      if (isMultiplayer && roomId && next.diceValue) {
+        const currentPlayer = currentState.players[currentState.currentPlayerIndex];
+        const newPosition = next.players[currentState.currentPlayerIndex].position;
+
+        console.log(`📤 Broadcasting move: ${currentPlayer.name} rolled ${next.diceValue}, moved to ${newPosition}`);
+
+        recordPlayerMove(
+          roomId,
+          currentPlayer.id,
+          currentPlayer.name,
+          next.diceValue,
+          newPosition,
+          next.lastEvent,
+          next.players
+        ).catch(err => {
+          console.error('Error broadcasting move:', err);
+        });
+      }
+
+      setGameState(next);
+
+      // Schedule bot turn if needed
+      if (
+        next.phase === 'playing' &&
+        next.players[next.currentPlayerIndex]?.isBot
+      ) {
+        setGameState(prev => ({ ...prev, botThinking: true }));
+      }
     }, 700);
-  }, [computeRoll]);
+  }, [isMultiplayer, roomId, computeRoll]);
 
   // ── Auto-roll for bots ──
   useEffect(() => {
@@ -320,6 +374,310 @@ export default function SnakesAndLaddersGame() {
     };
   }, [gameState.botThinking, gameState.currentPlayerIndex, doRoll, gameState]);
 
+  // ── Fallback polling for joining players waiting in lobby ──
+  // If Realtime is delayed, this ensures they still transition to playing phase
+  useEffect(() => {
+    // Only for joining players in game-lobby phase
+    if (gameMode === 'host' || gameState.phase !== 'game-lobby' || !roomId) {
+      return;
+    }
+
+    console.log('⏱️ JOINING PLAYER: Starting fallback polling for game initialization');
+    
+    let isMounted = true;
+    const pollingInterval = setInterval(async () => {
+      if (!isMounted) return;
+
+      try {
+        // Check if game has been initialized
+        const gameState = await getGameStateForRoom(roomId);
+        
+        if (gameState && gameState.game_data && gameState.game_data.players && gameState.game_data.players.length > 0) {
+          console.log('✅ JOINING PLAYER: Fallback polling detected game initialization!');
+          
+          // Fetch fresh room players
+          const roomPlayers = await getRoomPlayers(roomId);
+          if (!roomPlayers || roomPlayers.length === 0) {
+            console.error('❌ No room players found');
+            return;
+          }
+
+          // Deduplicate
+          const uniqueRoomPlayers = Array.from(
+            new Map(roomPlayers.map(rp => [rp.player_id || rp.id, rp])).values()
+          );
+          
+          const gamePlayers: Player[] = uniqueRoomPlayers.map((rp) => ({
+            id: rp.player_id || rp.id,
+            name: rp.player_name,
+            position: rp.position || 0,
+            color: rp.color,
+            emoji: rp.emoji,
+            isBot: false,
+            finished: false,
+          }));
+
+          console.log('🎮 JOINING PLAYER: Synced with', gamePlayers.length, 'players via polling');
+          
+          // Store local player ID - Find the joining player in the game players list
+          // BUT only if not already set by the stable effect
+          if (!localPlayerIdRef.current) {
+            const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            const localPlayerId = localPlayer?.id || null;
+            localPlayerIdRef.current = localPlayerId;
+            console.log('👤 Local player matched (polling):', { playerName: authPlayer?.name, matchedId: localPlayerId, allPlayers: gamePlayers.map(p => `${p.name}(${p.id})`) });
+          } else {
+            console.log('🔒 Local player ID already set (polling), skipping update:', localPlayerIdRef.current);
+          }
+          
+          // Mark as initialized
+          gameInitializedRef.current = true;
+
+          // Move subscription already set up in early effect, just transition
+          console.log('📌 JOINING PLAYER: Transitioning to playing phase (via polling fallback)');
+          
+          setAnimDice(1);
+          setGameState(prev => ({
+            ...prev,
+            phase: 'playing',
+            players: gamePlayers,
+            currentPlayerIndex: gameState.game_data?.currentPlayerIndex || 0,
+            diceValue: null,
+            isRolling: false,
+            winner: null,
+            lastEvent: gameState.game_data?.lastEvent || 'Game started! Good luck!',
+            botThinking: false,
+          }));
+
+          // Stop polling since game has started
+          clearInterval(pollingInterval);
+        }
+      } catch (err) {
+        console.warn('⏱️ Polling check error (this is OK):', err instanceof Error ? err.message : err);
+      }
+    }, 1000); // Poll every 1 second
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollingInterval);
+      console.log('🧹 Cleanup: Stopped fallback polling');
+    };
+  }, [roomId, gameMode, gameState.phase, authPlayer?.id]);
+
+  // ── Set up game moves subscription EARLY (for all multiplayer players) ──
+  // This should be ready BEFORE game starts so we don't miss the host's first move
+  useEffect(() => {
+    // Only for multiplayer players with a room
+    if (!isMultiplayer || !roomId) {
+      return;
+    }
+
+    console.log('📡 Setting up game moves subscription early for room:', roomId);
+
+    // Set up moves subscription (this will be used once game starts)
+    if (gameMovesSubscriptionRef.current) {
+      gameMovesSubscriptionRef.current.unsubscribe();
+    }
+
+    gameMovesSubscriptionRef.current = subscribeToGameMoves(roomId, (remoteGameState) => {
+      console.log('📨 Move update received:', { 
+        currentPlayerIndex: remoteGameState.game_data?.currentPlayerIndex,
+        lastEvent: remoteGameState.game_data?.lastEvent 
+      });
+
+      if (remoteGameState.game_data) {
+        setGameState(prev => ({
+          ...prev,
+          players: remoteGameState.game_data.players || prev.players,
+          currentPlayerIndex: remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex,
+          lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
+        }));
+      }
+
+      if (remoteGameState.game_data?.gameFinished && remoteGameState.game_data?.winner) {
+        const winner = remoteGameState.game_data.winner;
+        setGameState(prev => ({
+          ...prev,
+          phase: 'finished',
+          winner: {
+            id: winner.id,
+            name: winner.name,
+            position: 100,
+            color: prev.players.find(p => p.id === winner.id)?.color || '#FFF',
+            emoji: prev.players.find(p => p.id === winner.id)?.emoji || '😊',
+            isBot: false,
+            finished: true,
+          },
+          lastEvent: `🎉 ${winner.name} reached 100 and WINS!`,
+        }));
+      }
+    });
+
+    return () => {
+      // Don't unsubscribe - keep listening throughout the game
+      console.log('📡 Game moves subscription remains active for room:', roomId);
+    };
+  }, [isMultiplayer, roomId]);
+
+  // ── Set up game start listener EARLY (for joining players) ──
+  // This effect ensures localPlayerIdRef is set ONLY from the current game's player list
+  // and never gets overwritten by subsequent effects
+  useEffect(() => {
+    if (gameState.phase !== 'playing' || !gameState.players || gameState.players.length === 0) {
+      return;
+    }
+
+    // If already set to a player in the current game, don't change it
+    if (localPlayerIdRef.current) {
+      const currentPlayer = gameState.players.find(p => p.id === localPlayerIdRef.current);
+      if (currentPlayer) {
+        console.log('🔒 Local player ID stable:', { name: currentPlayer.name, id: localPlayerIdRef.current });
+        return; // Already set correctly, don't change
+      }
+    }
+
+    // Find the local player by matching name
+    const localPlayer = gameState.players.find(p => p.name === authPlayer?.name);
+    if (localPlayer && !localPlayerIdRef.current) {
+      localPlayerIdRef.current = localPlayer.id;
+      console.log('🎯 Local player ID LOCKED IN:', { playerName: localPlayer.name, playerId: localPlayer.id });
+    }
+  }, [gameState.phase, gameState.players, authPlayer?.name]);
+
+  // ── Watch for game start via Realtime subscription (for joining players) ──
+  // When host initializes game, subscribeToRoom fires and we detect it here
+  useEffect(() => {
+    // Only set up subscription for joining players with a valid room
+    if (!roomId || gameMode === 'host' || gameInitializedRef.current) {
+      console.log('⏭️ Skipping subscription setup:', { roomId: !!roomId, isHost: gameMode === 'host', alreadyInitialized: gameInitializedRef.current });
+      return;
+    }
+
+    console.log('👁️ Joining player subscribed to real-time game start notifications for room:', roomId);
+
+    // Set up subscription to detect when host starts the game
+    const subscription = subscribeToRoom(roomId, async (payload) => {
+      // subscribeToRoom listens to multiplayer_game_state table changes
+      // When host initializes game, this fires with INSERT event
+      console.log('📡 Subscription received payload:', {
+        table: payload.table,
+        eventType: payload.eventType,
+        hasGameData: !!payload.new?.game_data,
+        hasPlayers: !!payload.new?.game_data?.players,
+      });
+
+      // Check if this is a game initialization event (multiplayer_game_state INSERT)
+      if (payload.table === 'multiplayer_game_state' && payload.new?.game_data) {
+        console.log('✅ REALTIME: Joining player detected game state change!', payload.new.game_data);
+        
+        // Only proceed if game_data has players (game has been initialized)
+        if (!payload.new.game_data.players || payload.new.game_data.players.length === 0) {
+          console.log('⏸️ Game state exists but no players yet, waiting...');
+          return;
+        }
+
+        try {
+          // Fetch fresh room players to sync with host
+          const roomPlayers = await getRoomPlayers(roomId);
+          if (!roomPlayers || roomPlayers.length === 0) {
+            console.error('❌ No room players found after game init');
+            return;
+          }
+
+          // Deduplicate room players by player_id
+          const uniqueRoomPlayers = Array.from(
+            new Map(roomPlayers.map(rp => [rp.player_id || rp.id, rp])).values()
+          );
+          
+          const gamePlayers: Player[] = uniqueRoomPlayers.map((rp) => ({
+            id: rp.player_id || rp.id,
+            name: rp.player_name,
+            position: rp.position || 0,
+            color: rp.color,
+            emoji: rp.emoji,
+            isBot: false,
+            finished: false,
+          }));
+
+          console.log('🎮 Joining player synced with', gamePlayers.length, 'players:', gamePlayers.map(p => `${p.name} (${p.id})`));
+          
+          // Store local player ID for turn validation - Find the joining player in the game players list
+          // BUT only if not already set by the stable effect
+          if (!localPlayerIdRef.current) {
+            const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            const localPlayerId = localPlayer?.id || null;
+            localPlayerIdRef.current = localPlayerId;
+            console.log('👤 Local player matched (realtime):', { playerName: authPlayer?.name, matchedId: localPlayerId, allPlayers: gamePlayers.map(p => `${p.name}(${p.id})`) });
+          } else {
+            console.log('🔒 Local player ID already set (realtime), skipping update:', localPlayerIdRef.current);
+          }
+
+          // Mark as initialized to prevent re-subscription
+          gameInitializedRef.current = true;
+
+          // Subscribe to game moves (for receiving updates during play)
+          if (gameMovesSubscriptionRef.current) {
+            gameMovesSubscriptionRef.current.unsubscribe();
+          }
+          
+          gameMovesSubscriptionRef.current = subscribeToGameMoves(roomId, (remoteGameState) => {
+            console.log('📨 Move update received:', remoteGameState);
+
+            if (remoteGameState.game_data) {
+              setGameState(prev => ({
+                ...prev,
+                players: remoteGameState.game_data.players || prev.players,
+                currentPlayerIndex: remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex,
+                lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
+              }));
+            }
+
+            // Check for winner
+            if (remoteGameState.game_data?.gameFinished && remoteGameState.game_data?.winner) {
+              const winner = remoteGameState.game_data.winner;
+              setGameState(prev => ({
+                ...prev,
+                phase: 'finished',
+                winner: {
+                  id: winner.id,
+                  name: winner.name,
+                  position: 100,
+                  color: prev.players.find(p => p.id === winner.id)?.color || '#FFF',
+                  emoji: prev.players.find(p => p.id === winner.id)?.emoji || '😊',
+                  isBot: false,
+                  finished: true,
+                },
+                lastEvent: `🎉 ${winner.name} reached 100 and WINS!`,
+              }));
+            }
+          });
+
+          // Transition to playing phase - THIS IS THE KEY TRANSITION!
+          console.log('📌 Joining player transitioning to PLAYING phase');
+          
+          setAnimDice(1);
+          setGameState(prev => ({
+            ...prev,
+            phase: 'playing',
+            players: gamePlayers,
+            currentPlayerIndex: payload.new?.game_data?.currentPlayerIndex || 0,
+            diceValue: null,
+            isRolling: false,
+            winner: null,
+            lastEvent: payload.new?.game_data?.lastEvent || 'Game started! Good luck!',
+            botThinking: false,
+          }));
+        } catch (err) {
+          console.error('❌ Error starting game from real-time notification:', err);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      console.log('🧹 Cleanup: Unsubscribed from game start notifications');
+    };
+  }, [roomId, gameMode, authPlayer?.id]);
   // ── Play snake hiss sound when a snake is hit ──
   useEffect(() => {
     if (gameState.snakeHit && gameState.phase === 'playing') {
@@ -341,8 +699,207 @@ export default function SnakesAndLaddersGame() {
     return () => {
       if (botTimerRef.current) clearTimeout(botTimerRef.current);
       if (rollAnimRef.current) clearInterval(rollAnimRef.current);
+      if (gameMovesSubscriptionRef.current) {
+        gameMovesSubscriptionRef.current.unsubscribe();
+      }
+      if (gameStartSubscriptionRef.current) {
+        gameStartSubscriptionRef.current.unsubscribe();
+      }
     };
   }, []);
+
+  // ── Host a new multiplayer game ──
+  async function handleHostGame() {
+    try {
+      if (!authPlayer) {
+        alert('You must be logged in to host a game');
+        return;
+      }
+
+      const newRoom = await createGameRoom(
+        authPlayer.id,
+        authPlayer.name,
+        authPlayer.isGuest,
+        'snakes_and_ladders'
+      );
+
+      setRoomId(newRoom.id);
+      setRoomCode(newRoom.room_code);
+      setIsMultiplayer(true);
+      setGameMode('host');
+      setGameState(prev => ({
+        ...prev,
+        phase: 'game-lobby'
+      }));
+    } catch (error) {
+      alert('Error creating room: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  }
+
+  // ── Join a multiplayer game ──
+  async function handleJoinGame() {
+    if (!joinCode.trim()) {
+      setJoinError('Please enter a room code');
+      return;
+    }
+
+    try {
+      setJoinError('');
+      // Room will be fetched by GameLobby component
+      setRoomCode(joinCode.toUpperCase());
+      setIsMultiplayer(true);
+      setGameMode('join');
+      setGameState(prev => ({
+        ...prev,
+        phase: 'game-lobby'
+      }));
+    } catch (error) {
+      setJoinError('Error joining room: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  }
+
+  // ── Start game from mode select ──
+  function handlePlayLocally() {
+    setIsMultiplayer(false);
+    setGameMode('single');
+    setGameState(prev => ({
+      ...prev,
+      phase: 'lobby'
+    }));
+  }
+
+  // ── Start game from game lobby (multiplayer) ──
+  async function handleStartFromLobby() {
+    if (!isMultiplayer || !roomId) {
+      console.error('❌ handleStartFromLobby: isMultiplayer=', isMultiplayer, 'roomId=', roomId);
+      setGameState(prev => ({
+        ...prev,
+        phase: 'lobby'
+      }));
+      return;
+    }
+
+    console.log('👑 HOST: Starting multiplayer game from lobby');
+
+    try {
+      console.log('👑 HOST: Marking room as playing...');
+      // Mark room as playing
+      await updateRoomStatus(roomId, 'playing');
+      console.log('👑 HOST: Room status updated to playing');
+      
+      // Fetch all room players
+      console.log('👑 HOST: Fetching room players...');
+      const roomPlayers = await getRoomPlayers(roomId);
+      if (!roomPlayers || roomPlayers.length === 0) {
+        console.error('👑 HOST: No players found in room!');
+        alert('No players found in room');
+        return;
+      }
+      console.log('👑 HOST: Found', roomPlayers.length, 'room players');
+
+      // Convert room players to game players with deduplication by player_id
+      const uniqueRoomPlayers = Array.from(
+        new Map(roomPlayers.map(rp => [rp.player_id || rp.id, rp])).values()
+      );
+      
+      const gamePlayers: Player[] = uniqueRoomPlayers.map((rp) => ({
+        id: rp.player_id || rp.id,
+        name: rp.player_name,
+        position: rp.position || 0,
+        color: rp.color,
+        emoji: rp.emoji,
+        isBot: false,
+        finished: false,
+      }));
+      
+      // Identify which player index is the local player by matching name
+      // Set it only if not already set
+      if (!localPlayerIdRef.current) {
+        const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+        const localPlayerId = localPlayer?.id || null;
+        localPlayerIdRef.current = localPlayerId;
+        console.log('👑 HOST: Local player matched:', { playerName: authPlayer?.name, matchedId: localPlayerId });
+      } else {
+        console.log('👑 HOST: Local player ID already set, skipping update');
+      }
+      
+      console.log('👑 HOST: Game players (deduplicated):', gamePlayers.map(p => `${p.name} (${p.id}`));
+
+      // Initialize game state in database
+      const initialGameState = {
+        players: gamePlayers,
+        currentPlayerIndex: 0,
+        lastEvent: 'Multiplayer game started! Good luck!',
+        lastMoveTimestamp: new Date().toISOString(),
+      };
+
+      console.log('👑 HOST: About to initialize game state in database with', gamePlayers.length, 'players');
+      await initializeGameState(roomId, initialGameState);
+      console.log('👑 HOST: ✅ Game state initialized in database! Realtime should fire now');
+
+      // Subscribe to game moves from other players
+      if (gameMovesSubscriptionRef.current) {
+        gameMovesSubscriptionRef.current.unsubscribe();
+      }
+      
+      gameMovesSubscriptionRef.current = subscribeToGameMoves(roomId, (remoteGameState) => {
+        console.log('📨 Received game state update:', remoteGameState);
+        remoteGameStateRef.current = remoteGameState;
+
+        // Update local game state with remote data
+        if (remoteGameState.game_data) {
+          setGameState(prev => ({
+            ...prev,
+            players: remoteGameState.game_data.players || prev.players,
+            currentPlayerIndex: remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex,
+            lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
+          }));
+        }
+
+        // Check for winner
+        if (remoteGameState.game_data?.gameFinished && remoteGameState.game_data?.winner) {
+          const winner = remoteGameState.game_data.winner;
+          setGameState(prev => ({
+            ...prev,
+            phase: 'finished',
+            winner: {
+              id: winner.id,
+              name: winner.name,
+              position: 100,
+              color: prev.players.find(p => p.id === winner.id)?.color || '#FFF',
+              emoji: prev.players.find(p => p.id === winner.id)?.emoji || '😊',
+              isBot: false,
+              finished: true,
+            },
+            lastEvent: `🎉 ${winner.name} reached 100 and WINS!`,
+          }));
+        }
+      });
+
+      // Start the game
+      setAnimDice(1);
+      gameInitializedRef.current = true; // Mark as initialized so effect knows to stop polling
+      console.log('👑 HOST: Game initialized and started');
+      setGameState(prev => ({
+        ...prev,
+        phase: 'playing',
+      }));
+
+    } catch (error) {
+      console.error('Error starting multiplayer game:', error);
+      alert('Error starting game: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  }
+
+  // ── Back to mode select ──
+  function handleBackToModeSelect() {
+    setJoinError('');
+    setJoinCode('');
+    setGameState(prev => ({
+      ...prev,
+      phase: 'mode-select'
+    }));
+  }
 
   // ── Start game ──
   function startGame() {
@@ -397,9 +954,21 @@ export default function SnakesAndLaddersGame() {
   function resetGame() {
     if (botTimerRef.current) clearTimeout(botTimerRef.current);
     if (rollAnimRef.current) clearInterval(rollAnimRef.current);
+    if (gameMovesSubscriptionRef.current) {
+      gameMovesSubscriptionRef.current.unsubscribe();
+    }
+    
+    // Reset multiplayer state and initialization flag
+    gameInitializedRef.current = false;
+    if (isMultiplayer && roomId) {
+      updateRoomStatus(roomId, 'waiting').catch(err => {
+        console.error('Error updating room status:', err);
+      });
+    }
+    
     setRollingAnim(false);
     setGameState({
-      phase: 'lobby',
+      phase: 'game-lobby',
       players: [],
       currentPlayerIndex: 0,
       diceValue: null,
@@ -420,16 +989,144 @@ export default function SnakesAndLaddersGame() {
   }
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-  const canRoll =
-    gameState.phase === 'playing' &&
-    !rollingAnim &&
-    !gameState.botThinking &&
-    currentPlayer &&
-    !currentPlayer.isBot &&
-    !currentPlayer.finished;
+  
+  // Check if it's the local player's turn (for multiplayer)
+  const isLocalPlayerTurn = !isMultiplayer || (currentPlayer?.id === localPlayerIdRef.current);
+  
+  // Determine if the local player can roll
+  let canRoll = false;
+  if (gameState.phase === 'playing' && !rollingAnim && !gameState.botThinking && currentPlayer && !currentPlayer.finished) {
+    if (isMultiplayer && localPlayerIdRef.current) {
+      // Multiplayer: Only the player whose actual ID matches the current player can roll
+      canRoll = currentPlayer.id === localPlayerIdRef.current && !currentPlayer.isBot;
+      
+      // Debug logging - show when it works and when it fails
+      if (currentPlayer && localPlayerIdRef.current) {
+        if (canRoll) {
+          console.log(`✅ Turn validation PASSED - It's your turn!:`, {
+            currentPlayerName: currentPlayer.name,
+            currentPlayerId: currentPlayer.id,
+            localPlayerId: localPlayerIdRef.current,
+            authPlayerName: authPlayer?.name,
+            match: true,
+          });
+        } else {
+          console.log(`❌ Turn validation failed:`, {
+            currentPlayerName: currentPlayer.name,
+            currentPlayerId: currentPlayer.id,
+            localPlayerId: localPlayerIdRef.current,
+            authPlayerName: authPlayer?.name,
+            isBot: currentPlayer.isBot,
+            match: currentPlayer.id === localPlayerIdRef.current,
+          });
+        }
+      }
+    } else {
+      // Single-player: Only if current player is human-controlled (not bot)
+      canRoll = !currentPlayer.isBot;
+    }
+  }
 
   // ════════════════════════════════════════════════════════════════════
-  // LOBBY
+  // MODE SELECT
+  // ════════════════════════════════════════════════════════════════════
+  if (gameState.phase === 'mode-select') {
+    return (
+      <div className="snakes-container">
+        <div className="mode-select-screen">
+          <h1 className="mode-select-title">🐍 Snakes & Ladders 🪜</h1>
+          <p className="mode-select-subtitle">Choose your game mode</p>
+
+          <div className="mode-buttons">
+            <button className="mode-btn" onClick={handlePlayLocally}>
+              <span className="mode-icon">👤</span>
+              <span className="mode-label">Play Locally</span>
+              <span className="mode-desc">Play with friends on this device</span>
+            </button>
+
+            <button className="mode-btn" onClick={handleHostGame}>
+              <span className="mode-icon">🎮</span>
+              <span className="mode-label">Host Online</span>
+              <span className="mode-desc">Create a room and share the code</span>
+            </button>
+
+            <button className="mode-btn" onClick={() => setGameState(prev => ({ ...prev, phase: 'join-screen' }))}>
+              <span className="mode-icon">🔗</span>
+              <span className="mode-label">Join Online</span>
+              <span className="mode-desc">Join a friend's game by code</span>
+            </button>
+          </div>
+
+          <button className="btn-back" onClick={() => navigate('/')}>
+            ← Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // JOIN GAME SCREEN
+  // ════════════════════════════════════════════════════════════════════
+  if (gameState.phase === 'join-screen') {
+    return (
+      <div className="snakes-container">
+        <div className="join-game-screen">
+          <h1 className="join-title">Join a Game</h1>
+          
+          <div className="join-input-section">
+            <label>Enter Room Code:</label>
+            <input
+              type="text"
+              placeholder="e.g., ABC123"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              onKeyPress={(e) => e.key === 'Enter' && handleJoinGame()}
+              className="join-code-input"
+              maxLength={6}
+              autoFocus
+            />
+            {joinError && <p className="join-error">{joinError}</p>}
+          </div>
+
+          <div className="join-actions">
+            <button className="btn-primary" onClick={handleJoinGame}>
+              Join Game
+            </button>
+            <button className="btn-secondary" onClick={handleBackToModeSelect}>
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // GAME LOBBY (Multiplayer)
+  // ════════════════════════════════════════════════════════════════════
+  if (gameState.phase === 'game-lobby' && isMultiplayer && roomCode) {
+    return (
+      <div className="snakes-container">
+        <div className="game-lobby-wrapper">
+          <GameLobby 
+            roomCode={roomCode}
+            roomId={roomId || undefined}
+            onStartGame={handleStartFromLobby}
+            onBack={handleBackToModeSelect}
+            isHost={gameMode === 'host'}
+            onRoomIdReady={(id: string) => {
+              console.log('🎯 Parent received roomId from GameLobby:', id);
+              setRoomId(id);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  // LOBBY (Single player setup)
   // ════════════════════════════════════════════════════════════════════
   if (gameState.phase === 'lobby') {
     const humanCount = Math.max(1, playerCount - botCount);
@@ -589,13 +1286,23 @@ export default function SnakesAndLaddersGame() {
                 doRoll(gameState);
               }}
               disabled={!canRoll}
+              title={isMultiplayer && !isLocalPlayerTurn ? "Waiting for other players..." : ""}
             >
               {rollingAnim
                 ? '⏳ Rolling…'
                 : gameState.botThinking
                 ? '🤖 CPU thinking…'
+                : isMultiplayer && !isLocalPlayerTurn
+                ? '⏱️ Waiting...'
                 : '🎲 Roll Dice'}
             </button>
+
+            {/* Room code badge for multiplayer */}
+            {isMultiplayer && roomCode && (
+              <div className="room-badge">
+                🎮 Room: <strong>{roomCode}</strong>
+              </div>
+            )}
           </div>
 
           {/* ── Event banner ── */}
