@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { AudioToggle } from '../components/AudioToggle';
+import { useAudio } from '../context/AudioContext';
 import './murdoku.css';
 
 export default function MurdokuPage() {
+  const { playButtonClick } = useAudio();
   useEffect(() => {
     // Redirect immediately with a small delay for UX
     const timer = setTimeout(() => {
@@ -12,6 +15,7 @@ export default function MurdokuPage() {
   }, []);
 
   const handleBack = () => {
+    playButtonClick();
     window.history.back();
   };
 
@@ -30,9 +34,14 @@ export default function MurdokuPage() {
           </div>
         </div>
 
-        <div className="theme-toggle-murdoku">
+        {/* <div className="theme-toggle-murdoku">
           <ThemeToggle />
+        </div> */}
+
+        <div className="theme-toggle-murdoku">
+          <AudioToggle />
         </div>
+
       </div>
     </div>
   );

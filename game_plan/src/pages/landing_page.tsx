@@ -1,5 +1,7 @@
 import Wavify from 'react-wavify';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { AudioToggle } from '../components/AudioToggle';
+import { useAudio } from '../context/AudioContext';
 import './landing_page.css';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +16,11 @@ export default function LandingPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const isAuthenticated = !!user || isGuest;
+  const { bgmRef, playButtonClick } = useAudio();
+
+  const handleGameLinkClick = () => {
+    playButtonClick();
+  };
 
   useEffect(() => {
     if (audioRef.current) {
@@ -69,7 +76,7 @@ export default function LandingPage() {
     <div className="landing-page">
       {/* Background Music */}
       <audio
-        ref={audioRef}
+        ref={bgmRef}
         loop
         preload="auto"
         style={{ display: 'none' }}
@@ -156,12 +163,8 @@ export default function LandingPage() {
           <div className="theme-toggle-position">
             <ThemeToggle />
           </div>
-          <div className="sound-icon" onClick={toggleSound} style={{ cursor: 'pointer' }}>
-            <img 
-              src={isMuted ? '/bgm_1.jpg' : '/bgm_2.jpg'} 
-              alt={isMuted ? 'Muted' : 'Playing'} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+          <div>
+            <AudioToggle />
           </div>
         </div>
       </section>

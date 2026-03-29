@@ -11,10 +11,12 @@ import JoinGamePage from './pages/join_game'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { AudioProvider } from './context/AudioContext'
 
 function App() {
   return (
     <ThemeProvider>
+      <AudioProvider>
       <AuthProvider>
         <BrowserRouter>
           <Routes>
@@ -30,6 +32,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
+      </AudioProvider>
     </ThemeProvider>
   )
 }
