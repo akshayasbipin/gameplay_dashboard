@@ -422,7 +422,8 @@ export default function SnakesAndLaddersGame() {
           // Store local player ID - Find the joining player in the game players list
           // BUT only if not already set by the stable effect
           if (!localPlayerIdRef.current) {
-            const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            // const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            const localPlayer = gamePlayers.find(p => p.id === authPlayer?.id) ?? gamePlayers.find(p => p.name === authPlayer?.name);
             const localPlayerId = localPlayer?.id || null;
             localPlayerIdRef.current = localPlayerId;
             console.log('👤 Local player matched (polling):', { playerName: authPlayer?.name, matchedId: localPlayerId, allPlayers: gamePlayers.map(p => `${p.name}(${p.id})`) });
@@ -482,16 +483,32 @@ export default function SnakesAndLaddersGame() {
     gameMovesSubscriptionRef.current = subscribeToGameMoves(roomId, (remoteGameState) => {
       console.log('📨 Move update received:', { 
         currentPlayerIndex: remoteGameState.game_data?.currentPlayerIndex,
+        nextPlayerName: remoteGameState.game_data?.nextPlayerName,
         lastEvent: remoteGameState.game_data?.lastEvent 
       });
 
       if (remoteGameState.game_data) {
-        setGameState(prev => ({
-          ...prev,
-          players: remoteGameState.game_data.players || prev.players,
-          currentPlayerIndex: remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex,
-          lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
-        }));
+        // Update players and current player index
+        setGameState(prev => {
+          const updatedPlayers = remoteGameState.game_data.players || prev.players;
+          const updatedIndex = remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex;
+          
+          console.log('🎮 Updating game state:', {
+            prevIndex: prev.currentPlayerIndex,
+            newIndex: updatedIndex,
+            prevPlayerName: prev.players[prev.currentPlayerIndex]?.name,
+            newPlayerName: updatedPlayers[updatedIndex]?.name,
+            newPlayerPlayerId: updatedPlayers[updatedIndex]?.id,
+            localPlayerId: localPlayerIdRef.current,
+          });
+          
+          return {
+            ...prev,
+            players: updatedPlayers,
+            currentPlayerIndex: updatedIndex,
+            lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
+          };
+        });
       }
 
       if (remoteGameState.game_data?.gameFinished && remoteGameState.game_data?.winner) {
@@ -604,7 +621,8 @@ export default function SnakesAndLaddersGame() {
           // Store local player ID for turn validation - Find the joining player in the game players list
           // BUT only if not already set by the stable effect
           if (!localPlayerIdRef.current) {
-            const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            // const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+            const localPlayer = gamePlayers.find(p => p.id === authPlayer?.id) ?? gamePlayers.find(p => p.name === authPlayer?.name);
             const localPlayerId = localPlayer?.id || null;
             localPlayerIdRef.current = localPlayerId;
             console.log('👤 Local player matched (realtime):', { playerName: authPlayer?.name, matchedId: localPlayerId, allPlayers: gamePlayers.map(p => `${p.name}(${p.id})`) });
@@ -814,15 +832,21 @@ export default function SnakesAndLaddersGame() {
       
       // Identify which player index is the local player by matching name
       // Set it only if not already set
+      // if (!localPlayerIdRef.current) {
+      //   const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
+      //   const localPlayerId = localPlayer?.id || null;
+      //   localPlayerIdRef.current = localPlayerId;
+      //   console.log('👑 HOST: Local player matched:', { playerName: authPlayer?.name, matchedId: localPlayerId });
+      // } else {
+      //   console.log('👑 HOST: Local player ID already set, skipping update');
+      // }
       if (!localPlayerIdRef.current) {
-        const localPlayer = gamePlayers.find(p => p.name === authPlayer?.name);
-        const localPlayerId = localPlayer?.id || null;
-        localPlayerIdRef.current = localPlayerId;
-        console.log('👑 HOST: Local player matched:', { playerName: authPlayer?.name, matchedId: localPlayerId });
-      } else {
-        console.log('👑 HOST: Local player ID already set, skipping update');
+        // For the host, their authPlayer.id is the player_id used in the room
+        const localPlayer = gamePlayers.find(p => p.id === authPlayer?.id);
+        localPlayerIdRef.current = localPlayer?.id || gamePlayers[0]?.id || null;
+        console.log('👑 HOST: Local player ID set:', localPlayerIdRef.current);
       }
-      
+
       console.log('👑 HOST: Game players (deduplicated):', gamePlayers.map(p => `${p.name} (${p.id}`));
 
       // Initialize game state in database
@@ -848,12 +872,24 @@ export default function SnakesAndLaddersGame() {
 
         // Update local game state with remote data
         if (remoteGameState.game_data) {
-          setGameState(prev => ({
-            ...prev,
-            players: remoteGameState.game_data.players || prev.players,
-            currentPlayerIndex: remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex,
-            lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
-          }));
+          setGameState(prev => {
+            const updatedPlayers = remoteGameState.game_data.players || prev.players;
+            const updatedIndex = remoteGameState.game_data.currentPlayerIndex !== undefined ? remoteGameState.game_data.currentPlayerIndex : prev.currentPlayerIndex;
+            
+            console.log('🎮 HOST: Updating game state from move:', {
+              prevIndex: prev.currentPlayerIndex,
+              newIndex: updatedIndex,
+              prevPlayerName: prev.players[prev.currentPlayerIndex]?.name,
+              newPlayerName: updatedPlayers[updatedIndex]?.name,
+            });
+            
+            return {
+              ...prev,
+              players: updatedPlayers,
+              currentPlayerIndex: updatedIndex,
+              lastEvent: remoteGameState.game_data.lastEvent || prev.lastEvent,
+            };
+          });
         }
 
         // Check for winner
@@ -877,12 +913,25 @@ export default function SnakesAndLaddersGame() {
       });
 
       // Start the game
+      // setAnimDice(1);
+      // gameInitializedRef.current = true; // Mark as initialized so effect knows to stop polling
+      // console.log('👑 HOST: Game initialized and started');
+      // setGameState(prev => ({
+      //   ...prev,
+      //   phase: 'playing',
+      // }));
       setAnimDice(1);
-      gameInitializedRef.current = true; // Mark as initialized so effect knows to stop polling
-      console.log('👑 HOST: Game initialized and started');
+      gameInitializedRef.current = true;
       setGameState(prev => ({
         ...prev,
         phase: 'playing',
+        players: gamePlayers,          // ✅ ADD THIS
+        currentPlayerIndex: 0,         // ✅ ADD THIS
+        diceValue: null,               // ✅ ADD THIS
+        lastEvent: 'Multiplayer game started! Good luck!',
+        winner: null,
+        isRolling: false,
+        botThinking: false,
       }));
 
     } catch (error) {
@@ -1021,6 +1070,10 @@ export default function SnakesAndLaddersGame() {
           });
         }
       }
+    } else if (isMultiplayer && !localPlayerIdRef.current) {
+      // This is a problem - local player ID should be set
+      console.warn('⚠️ Turn validation: localPlayerIdRef not set yet, cannot validate turn');
+      canRoll = false;
     } else {
       // Single-player: Only if current player is human-controlled (not bot)
       canRoll = !currentPlayer.isBot;
