@@ -49,7 +49,10 @@ export default function GameLobby({
   const reloadPlayers = useCallback(async (finalRoomId: string) => {
     try {
       const roomPlayers = await getRoomPlayers(finalRoomId);
-      if (!roomPlayers) return;
+      if (!roomPlayers) {
+        console.log('⏱️ No room players available yet');
+        return;
+      }
 
       // Deduplicate by player_id (unique per player) instead of database id
       // This prevents duplicate display when same player record exists multiple times
@@ -57,10 +60,15 @@ export default function GameLobby({
         new Map(roomPlayers.map(p => [p.player_id || p.id, p])).values()
       );
       
-      console.log('📋 Players loaded:', uniquePlayers.length, uniquePlayers);
+      console.log('📋 Players loaded:', uniquePlayers.length, uniquePlayers.map((p: any) => p.player_name));
       setPlayers(uniquePlayers);
     } catch (err) {
-      console.error('Error reloading players:', err);
+      // Suppress PGRST116 - game state just doesn't exist yet
+      if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'PGRST116') {
+        console.log('ℹ️ Game not ready yet (this is OK during lobby)');
+        return;
+      }
+      console.error('Error reloading players:', err instanceof Error ? err.message : String(err));
     }
   }, []);
 
@@ -107,33 +115,56 @@ export default function GameLobby({
 
         // For joining player: Add themselves if not already in room
         if (currentPlayer && !hasJoined) {
-          const currentPlayers = await getRoomPlayers(finalRoomId);
-          const playerExists = currentPlayers?.some(p => p.player_id === currentPlayer.id);
-          
-          if (!playerExists) {
-            const colors = ['#FF4757', '#2196F3', '#2ed573', '#ffa502', '#a55eea', '#ff6b81'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const emoji = ['🔴', '🔵', '🟢', '🟡', '🟣', '🩷'][Math.floor(Math.random() * 6)];
+          try {
+            const currentPlayers = await getRoomPlayers(finalRoomId);
+            const playerExists = currentPlayers?.some(p => p.player_id === currentPlayer.id);
             
-            await addPlayerToRoom(
-              finalRoomId,
-              currentPlayer.id,
-              currentPlayer.name,
-              color,
-              emoji,
-              currentPlayer.isGuest
-            );
-            
-            // Reload after adding self
-            await reloadPlayers(finalRoomId);
+            if (!playerExists) {
+              const colors = ['#FF4757', '#2196F3', '#2ed573', '#ffa502', '#a55eea', '#ff6b81'];
+              const color = colors[Math.floor(Math.random() * colors.length)];
+              const emoji = ['🔴', '🔵', '🟢', '🟡', '🟣', '🩷'][Math.floor(Math.random() * 6)];
+              
+              await addPlayerToRoom(
+                finalRoomId,
+                currentPlayer.id,
+                currentPlayer.name,
+                color,
+                emoji,
+                currentPlayer.isGuest
+              );
+              
+              // Reload after adding self
+              await reloadPlayers(finalRoomId);
+              console.log('✅ Joining player added to room successfully');
+            } else {
+              console.log('ℹ️ Joining player already in room');
+            }
+          } catch (err) {
+            // Don't fail if we can't add - they might have been added already
+            if (err && typeof err === 'object' && 'code' in err && (err as any).code === 'PGRST116') {
+              console.log('ℹ️ Game not ready yet (this is OK during lobby)');
+            } else {
+              console.warn('⚠️ Could not verify player in room:', err instanceof Error ? err.message : String(err));
+            }
           }
           setHasJoined(true);
         }
 
         setLoading(false);
       } catch (err) {
+        // Suppress PGRST116 errors - game state just doesn't exist yet
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'PGRST116') {
+          console.log('ℹ️ Game state not initialized yet (this is OK during lobby)');
+          setHasJoined(true);
+          setLoading(false);
+          return;
+        }
+        
         console.error('Initialization error:', err);
-        setError('Error initializing room: ' + (err instanceof Error ? err.message : 'Unknown error'));
+        const errorMsg = err instanceof Error ? err.message : 
+                         (err && typeof err === 'object' && 'message' in err ? (err as any).message : 
+                         'Unknown error');
+        setError('Error initializing room: ' + errorMsg);
         setLoading(false);
       }
     };

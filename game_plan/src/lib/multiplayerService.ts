@@ -177,18 +177,29 @@ export const getRoomPlayers = async (roomId: string) => {
 
 /**
  * Get game state for a room
+ * Returns null if game state doesn't exist yet (PGRST116)
  */
 export const getGameState = async (roomId: string) => {
-  const { data, error } = await supabase
-    .from('multiplayer_game_state')
-    .select('*')
-    .eq('room_id', roomId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('multiplayer_game_state')
+      .select('*')
+      .eq('room_id', roomId)
+      .single();
 
-  if (error && error.code !== 'PGRST116') {
-    throw error;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Game state doesn't exist yet, return null silently
+        return null;
+      }
+      console.warn('⚠️ Error fetching game state:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error('❌ Unexpected error in getGameState:', err);
+    return null;
   }
-  return data;
 };
 
 /**
@@ -342,6 +353,12 @@ export const recordPlayerMove = async (
 ) => {
   // Find which player is next
   const currentPlayerIndex = playersState.findIndex(p => p.id === currentPlayerId);
+  
+  if (currentPlayerIndex === -1) {
+    console.error('❌ recordPlayerMove: Current player not found in state:', { currentPlayerId, playerIds: playersState.map(p => p.id) });
+    throw new Error(`Current player ${currentPlayerId} not found in game state`);
+  }
+  
   let nextPlayerIndex = (currentPlayerIndex + 1) % playersState.length;
   
   // Skip finished players
@@ -351,6 +368,8 @@ export const recordPlayerMove = async (
     tries++;
   }
 
+  const nextPlayer = playersState[nextPlayerIndex];
+  
   const gameData = {
     players: playersState.map((p, idx) => ({
       id: p.id,
@@ -359,17 +378,26 @@ export const recordPlayerMove = async (
       color: p.color,
       emoji: p.emoji,
       isBot: p.isBot,
-      finished: idx === currentPlayerIndex ? p.finished : p.finished,
+      finished: idx === currentPlayerIndex && newPosition === 100 ? true : p.finished,
     })),
     currentPlayerIndex: nextPlayerIndex,
     lastEvent: event,
     lastMoveTimestamp: new Date().toISOString(),
+    nextPlayerName: nextPlayer.name,
+    nextPlayerId: nextPlayer.id,
   };
+
+  console.log('📤 recordPlayerMove: Broadcasting move', { 
+    from: playersState[currentPlayerIndex].name, 
+    to: nextPlayer.name,
+    nextPlayerIndex,
+    playerCount: playersState.length 
+  });
 
   const { data, error } = await supabase
     .from('multiplayer_game_state')
     .update({
-      current_turn_player_name: playersState[nextPlayerIndex].name,
+      current_turn_player_name: nextPlayer.name,
       dice_value: diceValue,
       game_data: gameData,
       updated_at: new Date().toISOString(),
@@ -383,18 +411,31 @@ export const recordPlayerMove = async (
 
 /**
  * Get current game state for a room
+ * Returns null if game state doesn't exist yet (PGRST116)
  */
 export const getGameStateForRoom = async (roomId: string) => {
-  const { data, error } = await supabase
-    .from('multiplayer_game_state')
-    .select('*')
-    .eq('room_id', roomId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('multiplayer_game_state')
+      .select('*')
+      .eq('room_id', roomId)
+      .single();
 
-  if (error && error.code !== 'PGRST116') {
-    throw error;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Game state doesn't exist yet (host hasn't started), return null silently
+        console.log('⏸️ Game state not initialized yet for room:', roomId);
+        return null;
+      }
+      // Other errors should be logged but not thrown
+      console.warn('⚠️ Error fetching game state:', { code: error.code, message: error.message });
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error('❌ Unexpected error fetching game state:', err);
+    return null;
   }
-  return data;
 };
 
 /**
@@ -426,24 +467,29 @@ export const recordGameWinner = async (
 };
 
 /**
- * Subscribe to game moves (multiplayer gameplay)
+ * Subscribe to game moves (multiplayer gameplay) with Realtime + Polling Fallback
  */
 export const subscribeToGameMoves = (
   roomId: string,
   callback: (gameState: any) => void
 ) => {
+  let lastSeenTimestamp = new Date().toISOString();
+  let pollingInterval: NodeJS.Timeout | null = null;
+  
+  // Set up Realtime subscription
   const subscription = supabase
     .channel(`game-moves-${roomId}`)
     .on(
       'postgres_changes',
       {
-        event: 'UPDATE',
+        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
         schema: 'public',
         table: 'multiplayer_game_state',
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
-        console.log('🎲 Game move received:', payload);
+        console.log('🎲 Game move received (Realtime):', { event: payload.eventType, timestamp: payload.new?.updated_at });
+        lastSeenTimestamp = payload.new?.updated_at || lastSeenTimestamp;
         callback(payload.new);
       }
     )
@@ -451,11 +497,46 @@ export const subscribeToGameMoves = (
       (status) => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Subscribed to game moves for room:', roomId);
+          // Start polling fallback as backup
+          if (pollingInterval) clearInterval(pollingInterval);
+          pollingInterval = setInterval(async () => {
+            try {
+              const currentState = await getGameStateForRoom(roomId);
+              if (currentState && currentState.updated_at > lastSeenTimestamp) {
+                console.log('🔄 Game move received (Polling Fallback):', { timestamp: currentState.updated_at });
+                lastSeenTimestamp = currentState.updated_at;
+                callback(currentState);
+              }
+            } catch (err) {
+              console.warn('⏱️ Polling fallback error (this is OK):', err instanceof Error ? err.message : err);
+            }
+          }, 800); // Poll every 800ms
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Error subscribing to game moves');
+          console.error('❌ Error subscribing to game moves, relying on polling');
+          // Start aggressive polling as fallback
+          if (pollingInterval) clearInterval(pollingInterval);
+          pollingInterval = setInterval(async () => {
+            try {
+              const currentState = await getGameStateForRoom(roomId);
+              if (currentState && currentState.updated_at > lastSeenTimestamp) {
+                console.log('🔄 Game move received (Aggressive Polling):', { timestamp: currentState.updated_at });
+                lastSeenTimestamp = currentState.updated_at;
+                callback(currentState);
+              }
+            } catch (err) {
+              console.warn('⏱️ Aggressive polling error:', err instanceof Error ? err.message : err);
+            }
+          }, 500); // Poll every 500ms
         }
       }
     );
 
-  return subscription;
+  // Return subscription with cleanup
+  return {
+    unsubscribe: () => {
+      subscription.unsubscribe();
+      if (pollingInterval) clearInterval(pollingInterval);
+      console.log('🧹 Unsubscribed from game moves and stopped polling');
+    }
+  };
 };
