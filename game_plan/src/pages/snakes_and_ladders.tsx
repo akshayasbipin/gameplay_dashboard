@@ -1273,7 +1273,7 @@ export default function SnakesAndLaddersGame() {
             )}
           </div>
 
-          {/* Share link */}
+          {/* Share link
           <div className="lobby-section">
             <label>Share match link:</label>
             <div className="match-id-display">
@@ -1285,7 +1285,7 @@ export default function SnakesAndLaddersGame() {
                 {copied ? '✓ Copied!' : 'Copy'}
               </button>
             </div>
-          </div>
+          </div> */}
 
           <button className="btn-primary" onClick={() => {
             playButtonClick();
