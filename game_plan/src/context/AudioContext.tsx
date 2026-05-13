@@ -21,20 +21,36 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const isPlayingRef = useRef<boolean>(false);
 
   // Update BGM when mute state changes
   useEffect(() => {
     if (bgmRef.current) {
       if (isMuted) {
         bgmRef.current.pause();
+        isPlayingRef.current = false;
       } else {
-        bgmRef.current.play().catch((error) => {
-          console.log('Audio autoplay failed:', error);
-        });
+        // Only play if not already playing to avoid multiple instances
+        if (!isPlayingRef.current) {
+          bgmRef.current.play().catch((error) => {
+            console.log('Audio autoplay failed:', error);
+          });
+          isPlayingRef.current = true;
+        }
       }
     }
     // Persist preference
     localStorage.setItem('audio-muted', JSON.stringify(isMuted));
+  }, [isMuted]);
+
+  // Ensure audio continues playing when component remounts
+  useEffect(() => {
+    if (bgmRef.current && !isMuted && !isPlayingRef.current) {
+      bgmRef.current.play().catch((error) => {
+        console.log('Audio autoplay failed on remount:', error);
+      });
+      isPlayingRef.current = true;
+    }
   }, [isMuted]);
 
   const toggleMute = useCallback(() => {
@@ -63,11 +79,11 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
     audio.play().catch(() => {
       // Silent fail if audio can't play
     });
-  }, [isMuted]);
+  }, []);
 
   return (
     <AudioContext.Provider value={{ isMuted, toggleMute, playButtonClick, playSnakeHiss, playVictory, bgmRef }}>
-      {/* Global BGM Audio Element */}
+      {/* Global BGM Audio Element - Do NOT override this ref from child components */}
       <audio
         ref={bgmRef}
         loop
