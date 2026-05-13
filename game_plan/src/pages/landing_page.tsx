@@ -3,40 +3,21 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { AudioToggle } from '../components/AudioToggle';
 import { useAudio } from '../context/AudioContext';
 import './landing_page.css';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { user, isGuest, currentPlayer, loginAsGuest, logoutGuest, signOut } = useAuth();
-  const [isMuted, setIsMuted] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [guestName, setGuestName] = useState('');
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   const isAuthenticated = !!user || isGuest;
-  const { bgmRef, playButtonClick } = useAudio();
+  const { playButtonClick } = useAudio();
 
   const handleGameLinkClick = () => {
     playButtonClick();
-  };
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.pause();
-      } else {
-        // Try to play, but don't fail silently - browser autoplay policies may block it
-        audioRef.current.play().catch(() => {
-          // Autoplay blocked by browser - user can toggle sound manually
-        });
-      }
-    }
-  }, [isMuted]);
-
-  const toggleSound = () => {
-    setIsMuted(!isMuted);
   };
 
   const handleGuestLogin = async () => {
@@ -74,17 +55,6 @@ export default function LandingPage() {
 
   return (
     <div className="landing-page">
-      {/* Background Music */}
-      <audio
-        ref={bgmRef}
-        loop
-        preload="auto"
-        style={{ display: 'none' }}
-      >
-        <source src="/bgm.mp3" type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio>
-
       {/* Hero Section */}
       <section id="home" className="hero">
         <div className="hero-left">
