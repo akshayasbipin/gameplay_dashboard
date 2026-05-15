@@ -4,20 +4,20 @@ A collection of fun multiplayer games in one place. Play classic games like Snak
 
 ## Games
 
-- [ ] Snakes and Ladders
+- [x] Snakes and Ladders
 - [x] Words are Hard
 - [ ] Ludo
 - [ ] Uno
-- [x] Scribble and quick draw: currently goes to the actual game
-- [x] Muduroko : currently goes to the actual game
+- [ ] Scribble and quick draw: currently goes to the actual game
+- [ ] Muduroko : currently goes to the actual game
 
 ## Features
 
 - [ ] Light/Dark Theme
 - [ ] Create Backend
 - [ ] Review and improve each page 
-- [ ] Multi-player Support
-- [ ] Lobby System (for common players)
+- [x] Multi-player Support
+- [x] Lobby System (for common players)
 - [ ] Hosting & Deployment
 
 ## Getting Started
