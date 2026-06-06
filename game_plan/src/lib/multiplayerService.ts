@@ -26,7 +26,7 @@ export const getGuestSession = async (sessionToken: string) => {
     .from('guest_sessions')
     .select('*')
     .eq('session_token', sessionToken)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data;
@@ -87,6 +87,22 @@ export const createGameRoom = async (
       console.error('Error adding host to room players:', playerError);
       // Don't throw - room was created, just player wasn't added
     }
+    const { error: stateError } = await supabase
+      .from('multiplayer_game_state')
+      .insert({
+        room_id: room.id,
+        game_data: {
+          players: [],
+          currentPlayerIndex: 0,
+          gameStarted: false,
+          lastEvent: null,
+        },
+        updated_at: new Date().toISOString(),
+      });
+
+    if (stateError) {
+      console.error('Error initializing game state:', stateError);
+    }
   }
   
   return room;
@@ -100,7 +116,7 @@ export const getGameRoom = async (roomCode: string) => {
     .from('game_rooms')
     .select('*')
     .eq('room_code', roomCode)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data;
@@ -149,7 +165,7 @@ export const addPlayerToRoom = async (
     .from('game_rooms')
     .select('current_players')
     .eq('id', roomId)
-    .single();
+    .maybeSingle();
 
   if (currentRoom) {
     await supabase
@@ -185,7 +201,7 @@ export const getGameState = async (roomId: string) => {
       .from('multiplayer_game_state')
       .select('*')
       .eq('room_id', roomId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -208,15 +224,17 @@ export const getGameState = async (roomId: string) => {
 export const initializeGameState = async (roomId: string, initialState: any) => {
   const { data, error } = await supabase
     .from('multiplayer_game_state')
-    .insert({
-      room_id: roomId,
-      game_data: initialState,
-    })
+    .upsert(
+      {
+        room_id: roomId,
+        game_data: initialState,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'room_id' }  // update if row already exists
+    )
     .select();
 
-  if (error && !error.message.includes('duplicate key')) {
-    throw error;
-  }
+  if (error) throw error;
   return data?.[0];
 };
 
@@ -419,7 +437,7 @@ export const getGameStateForRoom = async (roomId: string) => {
       .from('multiplayer_game_state')
       .select('*')
       .eq('room_id', roomId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       if (error.code === 'PGRST116') {
