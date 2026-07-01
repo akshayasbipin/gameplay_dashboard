@@ -6,6 +6,7 @@ import WordsAreHardGame from './pages/words_are_hard'
 import ScribblePage from './pages/scribble'
 import MurdokuPage from './pages/murdoku'
 import GuessMyCodeGame from './pages/guess_my_code'
+import PictureGame from './pages/picture_round'
 import LoginPage from './pages/login'
 import SignupPage from './pages/signup'
 import JoinGamePage from './pages/join_game'
@@ -31,6 +32,7 @@ function App() {
             <Route path="/scribble" element={<ProtectedRoute><ScribblePage /></ProtectedRoute>} />
             <Route path="/murdoku" element={<ProtectedRoute><MurdokuPage /></ProtectedRoute>} />
             <Route path="/guess-my-code" element={<ProtectedRoute><GuessMyCodeGame /></ProtectedRoute>} />
+            <Route path="/picture-game" element={<ProtectedRoute><PictureGame /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

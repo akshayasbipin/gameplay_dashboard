@@ -1,0 +1,327 @@
+/* Picture Round — Pixel Vault Theme (matches guess_my_code.css) */
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@keyframes prFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pr-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: white;
+  font-family: 'Pixelify Sans', sans-serif;
+}
+
+.pr-card {
+  width: 100%;
+  max-width: 460px;
+  background: #10182b;
+  border: 3px solid #333;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.4);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: prFadeUp 0.4s ease-out;
+}
+
+.pr-card--wide {
+  max-width: 640px;
+}
+
+.pr-icon {
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.5));
+}
+
+.pr-title {
+  margin: 0;
+  color: #FFD700;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.pr-title--sm {
+  font-size: 15px;
+}
+
+.pr-subtitle {
+  margin: 0;
+  color: #a9b4cc;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ── Setup form ──────────────────────────────────────────────────── */
+.pr-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pr-label {
+  color: #a9b4cc;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pr-num-players {
+  display: flex;
+  gap: 8px;
+}
+
+.pr-num-btn {
+  flex: 1;
+  padding: 12px 0;
+  border: 2px solid #333;
+  background: #0b1120;
+  color: #a9b4cc;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pr-num-btn:hover {
+  border-color: #FFD700;
+}
+
+.pr-num-btn--active {
+  background: #FFD700;
+  color: #10182b;
+  border-color: #FFD700;
+}
+
+.pr-name-fields {
+  gap: 10px;
+}
+
+.pr-name-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #333;
+  background: #0b1120;
+  color: #fff;
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 14px;
+}
+
+.pr-name-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.25);
+}
+
+.pr-name-input::placeholder {
+  color: #556;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.pr-btn {
+  width: 100%;
+  padding: 14px;
+  border: 3px solid #333;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pr-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pr-btn--primary {
+  background: #FFD700;
+  color: #10182b;
+}
+
+.pr-btn--primary:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pr-btn--secondary {
+  background: #232e4a;
+  color: #FFD700;
+}
+
+.pr-btn--secondary:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pr-btn--ghost {
+  background: transparent;
+  color: #a9b4cc;
+  border-color: #445;
+}
+
+.pr-btn--ghost:hover {
+  color: #fff;
+  border-color: #a9b4cc;
+}
+
+/* ── Round header ────────────────────────────────────────────────── */
+.pr-round-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pr-round-badge {
+  background: #232e4a;
+  color: #FFD700;
+  border: 2px solid #333;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-family: 'Press Start 2P', cursive;
+  white-space: nowrap;
+}
+
+/* ── Puzzle image ────────────────────────────────────────────────── */
+.pr-image-frame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #fff;
+  border: 3px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pr-puzzle-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: prFadeUp 0.3s ease-out;
+}
+
+/* ── Player score buttons ───────────────────────────────────────── */
+.pr-players-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--pr-cols, 2), 1fr);
+  gap: 10px;
+}
+
+.pr-player-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px;
+  background: #0b1120;
+  border: 3px solid #333;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.pr-player-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+  background: #151f38;
+}
+
+.pr-player-btn:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
+.pr-player-name {
+  color: #a9b4cc;
+  font-size: 12px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.pr-player-score {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 22px;
+}
+
+/* ── Controls ────────────────────────────────────────────────────── */
+.pr-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pr-answer-note {
+  text-align: center;
+  color: #a9b4cc;
+  font-size: 11px;
+  padding: 10px;
+  border: 2px dashed #333;
+}
+
+/* ── Scoreboard (finished screen) ───────────────────────────────── */
+.pr-scoreboard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #333;
+  background: #0b1120;
+}
+
+.pr-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #232e4a;
+  color: #a9b4cc;
+  font-size: 13px;
+}
+
+.pr-score-row:last-child {
+  border-bottom: none;
+}
+
+.pr-score-row--leader {
+  color: #FFD700;
+  font-weight: 700;
+}
+
+.pr-score-value {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .pr-card {
+    padding: 26px 20px;
+  }
+
+  .pr-title {
+    font-size: 16px;
+  }
+
+  .pr-players-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pr-player-score {
+    font-size: 18px;
+  }
+}
