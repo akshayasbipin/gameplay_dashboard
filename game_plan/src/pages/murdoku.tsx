@@ -9,7 +9,7 @@ export default function MurdokuPage() {
   useEffect(() => {
     // Redirect immediately with a small delay for UX
     const timer = setTimeout(() => {
-      window.location.href = 'https://murdoku.com/print?lang=en';
+      window.location.href = 'https://murdoku.com/play/?lang=en';
     }, 2000);
     return () => clearTimeout(timer);
   }, []);

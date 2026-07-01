@@ -79,7 +79,7 @@ export default function LandingPage() {
                 <a onClick={() => handleGameSelect('/words-are-hard')} className="game-link">Words are hard</a>
                 <a onClick={() => handleGameSelect('/scribble')} className="game-link">Scribble</a>
                 <a onClick={() => handleGameSelect('/murdoku')} className="game-link">Murdoku</a>
-                <a href="#" className="game-link">Uno</a>
+                <a onClick={() => handleGameSelect('/guess-my-code')} className="game-link">Guess My Code</a>
                 <a href="#" className="game-link">Ludo</a>
               </div>
               <button 
