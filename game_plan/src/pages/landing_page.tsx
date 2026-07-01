@@ -1,5 +1,4 @@
 import Wavify from 'react-wavify';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { AudioToggle } from '../components/AudioToggle';
 import { useAudio } from '../context/AudioContext';
 import './landing_page.css';
@@ -58,7 +57,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section id="home" className="hero">
         <div className="hero-left">
-          <h1 className="hero-title">hello!</h1>
+          <h1 className="hero-title">Hello,पार्थ</h1>
           <p className="hero-subtitle">अपना पथ चुनो!!!</p>
           
           {!isAuthenticated ? (
@@ -131,9 +130,7 @@ export default function LandingPage() {
 
         {/* Bottom Buttons */}
         <div className="hero-button-group">
-          <div className="theme-toggle-position">
-            <ThemeToggle />
-          </div>
+          <div className="theme-toggle-position" aria-hidden="true" />
           <div>
             <AudioToggle />
           </div>

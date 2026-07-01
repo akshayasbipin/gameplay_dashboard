@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { AudioToggle } from '../components/AudioToggle';
 import { useAudio } from '../context/AudioContext';
 import './scribble.css';
