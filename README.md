@@ -7,25 +7,22 @@ A collection of fun multiplayer games in one place. Play classic games like Snak
 - [x] Snakes and Ladders
 - [x] Words are Hard
 - [ ] Ludo
-- [ ] Uno
-- [ ] Scribble and quick draw: currently goes to the actual game
-- [ ] Muduroko : currently goes to the actual game
+- [x] Guess my code
+- [x] Scribble and quick draw: currently goes to the actual game
+- [x] Muduroko : currently goes to the actual game
 
 ## Features
 
 - [ ] Light/Dark Theme
-- [ ] Create Backend
-- [ ] Review and improve each page 
 - [x] Multi-player Support
 - [x] Lobby System (for common players)
-- [ ] Hosting & Deployment
 
 ## Getting Started
 
 1. Clone the repository, Develop branch
 2. Install dependencies: `npm install`
 3. Run the development server: `npm run dev`
-4. Open your browser and start playing!
+
 
 ## Built With
 
@@ -35,4 +32,7 @@ A collection of fun multiplayer games in one place. Play classic games like Snak
 
 ---
 
-**Last Updated**: March 28, 2026
+**Last Updated**: July 1, 2026
+
+---
+**Owners**: [akshayasbipin](https://github.com/akshayasbipin), [nakulanand00](https://github.com/nakulanand00)
