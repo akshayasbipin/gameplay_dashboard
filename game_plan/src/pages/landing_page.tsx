@@ -59,7 +59,7 @@ export default function LandingPage() {
       <section id="home" className="hero">
         <div className="hero-left">
           <h1 className="hero-title">hello!</h1>
-          <p className="hero-subtitle">choose ur adventure</p>
+          <p className="hero-subtitle">अपना पथ चुनो!!!</p>
           
           {!isAuthenticated ? (
             <div className="hero-auth-buttons">
