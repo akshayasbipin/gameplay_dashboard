@@ -6,7 +6,6 @@ A collection of fun multiplayer games in one place. Play classic games like Snak
 
 - [x] Snakes and Ladders
 - [x] Words are Hard
-- [ ] Ludo
 - [x] Guess my code
 - [x] Scribble and quick draw: currently goes to the actual game
 - [x] Muduroko : currently goes to the actual game

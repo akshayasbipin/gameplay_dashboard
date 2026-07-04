@@ -15,8 +15,9 @@ export default function LandingPage() {
   const isAuthenticated = !!user || isGuest;
   const { playButtonClick } = useAudio();
 
-  const handleGameLinkClick = () => {
+  const handleGameSelect = (gamePath: string) => {
     playButtonClick();
+    navigate(gamePath);
   };
 
   const handleGuestLogin = async () => {
@@ -34,6 +35,7 @@ export default function LandingPage() {
   };
 
   const handleLogout = async () => {
+    playButtonClick();
     try {
       if (isGuest) {
         logoutGuest();
@@ -46,10 +48,6 @@ export default function LandingPage() {
       console.error('Logout error:', error);
       alert('Error logging out: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
-  };
-
-  const handleGameSelect = (gamePath: string) => {
-    navigate(gamePath);
   };
 
   return (
@@ -80,7 +78,6 @@ export default function LandingPage() {
                 <a onClick={() => handleGameSelect('/murdoku')} className="game-link">Murdoku</a>
                 <a onClick={() => handleGameSelect('/guess-my-code')} className="game-link">Guess My Code</a>
                 <a onClick={() => handleGameSelect('/picture-game')} className="game-link">Bollywood Picture Game</a>
-                <a href="#" className="game-link">Ludo</a>
               </div>
               <button 
                 type="button"

@@ -164,6 +164,26 @@ export default function WordsAreHardGame() {
     return (
       <div className="words-are-hard-game">
         <div className="setup-screen">
+          <button
+            className="back-home-btn"
+            onClick={() => {
+              playButtonClick();
+              navigate('/');
+            }}
+            style={{
+              position: 'absolute',
+              top: '1.5rem',
+              left: '1.5rem',
+              background: 'none',
+              border: '2px solid #333',
+              padding: '0.4rem 0.8rem',
+              cursor: 'pointer',
+              fontFamily: "'Pixelify Sans', sans-serif",
+            }}
+          >
+            ← Back to Home
+          </button>
+
           <h1>Words Are Hard 📝</h1>
           <p>
             Select the number of players (max 4) and start playing! Think of a word that matches the emoji letter and click your button to score.
@@ -193,9 +213,9 @@ export default function WordsAreHardGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -205,6 +225,26 @@ export default function WordsAreHardGame() {
     return (
       <div className="words-are-hard-game">
         <div className="setup-screen">
+          <button
+            className="back-home-btn"
+            onClick={() => {
+              playButtonClick();
+              navigate('/');
+            }}
+            style={{
+              position: 'absolute',
+              top: '1.5rem',
+              left: '1.5rem',
+              background: 'none',
+              border: '2px solid #333',
+              padding: '0.4rem 0.8rem',
+              cursor: 'pointer',
+              fontFamily: "'Pixelify Sans', sans-serif",
+            }}
+          >
+            ← Back to Home
+          </button>
+
           <h1>Enter Names</h1>
           <p>Customize player names before starting:</p>
 
@@ -239,9 +279,9 @@ export default function WordsAreHardGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -276,9 +316,9 @@ export default function WordsAreHardGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -290,6 +330,15 @@ export default function WordsAreHardGame() {
         <div className="game-screen">
           {/* Header with Timer and Reset */}
           <div className="game-header">
+            <button
+              className="back-home-btn"
+              onClick={() => {
+                playButtonClick();
+                navigate('/');
+              }}
+            >
+              ← Home
+            </button>
             <div className={`timer ${timeLeft <= 5 ? 'warning' : ''}`}>
               ⏱️ {formatTime(timeLeft)}
             </div>
@@ -359,9 +408,9 @@ export default function WordsAreHardGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -424,9 +473,9 @@ export default function WordsAreHardGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
