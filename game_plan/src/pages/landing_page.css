@@ -101,6 +101,7 @@ body {
   text-transform: uppercase;
   box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
   position: relative;
+  z-index: 2;
 }
 
 .game-link:hover {
@@ -152,7 +153,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  z-index: 5;
+  z-index: 1;
   gap: 0.8rem;
   flex-wrap: wrap;
 }
@@ -856,7 +857,7 @@ body {
   box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
   position: relative;
   margin-top: 1rem;
-  z-index: 100;
+  z-index: 1000;
   pointer-events: auto;
 }
 

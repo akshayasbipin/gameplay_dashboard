@@ -1,5 +1,4 @@
 import Wavify from 'react-wavify';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { AudioToggle } from '../components/AudioToggle';
 import { useAudio } from '../context/AudioContext';
 import './landing_page.css';
@@ -16,8 +15,9 @@ export default function LandingPage() {
   const isAuthenticated = !!user || isGuest;
   const { playButtonClick } = useAudio();
 
-  const handleGameLinkClick = () => {
+  const handleGameSelect = (gamePath: string) => {
     playButtonClick();
+    navigate(gamePath);
   };
 
   const handleGuestLogin = async () => {
@@ -35,6 +35,7 @@ export default function LandingPage() {
   };
 
   const handleLogout = async () => {
+    playButtonClick();
     try {
       if (isGuest) {
         logoutGuest();
@@ -49,17 +50,13 @@ export default function LandingPage() {
     }
   };
 
-  const handleGameSelect = (gamePath: string) => {
-    navigate(gamePath);
-  };
-
   return (
     <div className="landing-page">
       {/* Hero Section */}
       <section id="home" className="hero">
         <div className="hero-left">
-          <h1 className="hero-title">hello!</h1>
-          <p className="hero-subtitle">choose ur adventure</p>
+          <h1 className="hero-title">Hello,पार्थ</h1>
+          <p className="hero-subtitle">अपना पथ चुनो!!!</p>
           
           {!isAuthenticated ? (
             <div className="hero-auth-buttons">
@@ -79,8 +76,8 @@ export default function LandingPage() {
                 <a onClick={() => handleGameSelect('/words-are-hard')} className="game-link">Words are hard</a>
                 <a onClick={() => handleGameSelect('/scribble')} className="game-link">Scribble</a>
                 <a onClick={() => handleGameSelect('/murdoku')} className="game-link">Murdoku</a>
-                <a href="#" className="game-link">Uno</a>
-                <a href="#" className="game-link">Ludo</a>
+                <a onClick={() => handleGameSelect('/guess-my-code')} className="game-link">Guess My Code</a>
+                <a onClick={() => handleGameSelect('/picture-game')} className="game-link">Bollywood Picture Game</a>
               </div>
               <button 
                 type="button"
@@ -130,9 +127,7 @@ export default function LandingPage() {
 
         {/* Bottom Buttons */}
         <div className="hero-button-group">
-          <div className="theme-toggle-position">
-            <ThemeToggle />
-          </div>
+          <div className="theme-toggle-position" aria-hidden="true" />
           <div>
             <AudioToggle />
           </div>

@@ -1017,7 +1017,7 @@ export default function SnakesAndLaddersGame() {
     
     setRollingAnim(false);
     setGameState({
-      phase: 'game-lobby',
+      phase: isMultiplayer ? 'game-lobby' : 'lobby',
       players: [],
       currentPlayerIndex: 0,
       diceValue: null,
@@ -1187,6 +1187,17 @@ export default function SnakesAndLaddersGame() {
     return (
       <div className="snakes-container">
         <div className="lobby">
+          <button
+            className="btn-back"
+            onClick={() => {
+              playButtonClick();
+              navigate('/');
+            }}
+            style={{ marginBottom: '1rem' }}
+          >
+            ← Back to Home
+          </button>
+
           <h1 className="lobby-title">🐍 Snakes &amp; Ladders 🪜</h1>
 
           {/* Total players */}
@@ -1296,9 +1307,9 @@ export default function SnakesAndLaddersGame() {
         </div>
 
         {/* Audio Toggle */}
-        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+        {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
           <AudioToggle />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -1449,10 +1460,17 @@ export default function SnakesAndLaddersGame() {
             ↩ Back to Lobby
           </button>
 
+          <button className="btn-secondary btn-reset" onClick={() => {
+            playButtonClick();
+            navigate('/');
+          }}>
+            🏠 Back to Home
+          </button>
+
           {/* Audio Toggle */}
-          <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
+          {/* <div style={{ position: 'absolute', bottom: '2rem', right: '2rem' }}>
             <AudioToggle />
-          </div>
+          </div> */}
         </div>
       </div>
     );

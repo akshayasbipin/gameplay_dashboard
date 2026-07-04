@@ -1,5 +1,4 @@
 import './Header.css';
-import { ThemeToggle } from './ThemeToggle';
 
 export default function Header() {
   return (
@@ -16,7 +15,6 @@ export default function Header() {
           <li><a href="#contact" className="header-link">Contact</a></li>
         </ul>
         <div className="header-actions">
-          <ThemeToggle />
           <button className="header-button">Get Started</button>
         </div>
       </div>

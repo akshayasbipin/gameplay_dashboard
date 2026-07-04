@@ -67,24 +67,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('guestSession');
     setGuestUser(null);
 
-    // Sign up with Supabase Auth
-    const { data, error: authError } = await supabase.auth.signUp({
+    // Sign up with Supabase Auth. We pass `username` in the user's metadata
+    // instead of inserting into `players` from the client. If email
+    // confirmation is enabled, signUp() does NOT return an active session,
+    // so the client has no authenticated auth.uid() yet — any client-side
+    // insert into `players` will be rejected by RLS (error 42501).
+    // A database trigger (see SQL below) reads this metadata and creates
+    // the player row server-side, bypassing RLS entirely.
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { username },
+      },
     });
 
     if (authError) throw authError;
-
-    // Create player profile
-    if (data.user) {
-      const { error: profileError } = await supabase.from('players').insert({
-        id: data.user.id,
-        email,
-        username,
-      });
-
-      if (profileError) throw profileError;
-    }
   };
 
   const signIn = async (email: string, password: string) => {

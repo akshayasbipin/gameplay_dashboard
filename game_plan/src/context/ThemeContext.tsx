@@ -1,18 +1,16 @@
-import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 import type { ThemeMode, ThemeColors } from '../theme/theme';
 import { getTheme } from '../theme/theme';
 
 interface ThemeContextType {
   mode: ThemeMode;
   colors: ThemeColors;
-  toggleTheme: () => void;
-  setTheme: (mode: ThemeMode) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [mode, setMode] = useState<ThemeMode>(() => {
+  const [mode] = useState<ThemeMode>(() => {
     // Check localStorage for saved preference
     const saved = localStorage.getItem('theme-mode') as ThemeMode | null;
     if (saved) return saved;
@@ -42,20 +40,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('theme-mode', mode);
   }, [mode, colors]);
 
-  const toggleTheme = useCallback(() => {
-    setMode(prev => prev === 'light' ? 'dark' : 'light');
-  }, []);
-
-  const setTheme = useCallback((newMode: ThemeMode) => {
-    setMode(newMode);
-  }, []);
-
   const value = useMemo(() => ({
     mode,
     colors,
-    toggleTheme,
-    setTheme,
-  }), [mode, colors, toggleTheme, setTheme]);
+  }), [mode, colors]);
 
   return (
     <ThemeContext.Provider value={value}>

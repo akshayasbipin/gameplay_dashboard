@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { AudioToggle } from '../components/AudioToggle';
 import { useAudio } from '../context/AudioContext';
 import './murdoku.css';
@@ -9,7 +8,7 @@ export default function MurdokuPage() {
   useEffect(() => {
     // Redirect immediately with a small delay for UX
     const timer = setTimeout(() => {
-      window.location.href = 'https://murdoku.com/print?lang=en';
+      window.location.href = 'https://murdoku.com/play/?lang=en';
     }, 2000);
     return () => clearTimeout(timer);
   }, []);

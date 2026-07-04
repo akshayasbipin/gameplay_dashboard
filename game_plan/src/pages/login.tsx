@@ -29,6 +29,24 @@ export default function LoginPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
+        <button
+          type="button"
+          className="back-home-link"
+          onClick={() => navigate('/')}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            marginBottom: '1rem',
+            cursor: 'pointer',
+            color: 'inherit',
+            fontSize: '0.9rem',
+            opacity: 0.8,
+          }}
+        >
+          ← Back to Home
+        </button>
+
         <h1>Login</h1>
         
         {error && <div className="error-message">{error}</div>}
