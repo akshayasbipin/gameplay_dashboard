@@ -13,6 +13,8 @@ import {
   createCodeGameRoom,
   submitSecretCode,
   submitGuess,
+  configureTimer,
+  giveUpGame,
   finalizeRoundOnTimeout,
   isValidCode,
   ROUND_DURATION_MS,
@@ -120,7 +122,10 @@ export default function GuessMyCodeGame() {
   const [guessError, setGuessError] = useState('');
   const [guessSubmitting, setGuessSubmitting] = useState(false);
 
+  const [timerEnabled, setTimerEnabled] = useState<boolean | null>(null);
+  const [timerDurationSeconds, setTimerDurationSeconds] = useState(90);
   const [timeLeftMs, setTimeLeftMs] = useState(ROUND_DURATION_MS);
+  const [givingUp, setGivingUp] = useState(false);
 
   const gameMovesSubRef = useRef<any>(null);
   const timeoutFiredRef = useRef(false);
@@ -197,12 +202,33 @@ export default function GuessMyCodeGame() {
 
   // Host: click "Start Game" inside GameLobby
   const handleStartGame = async () => {
-    if (!roomId) return;
+    if (!roomId || timerEnabled === null) return;
     try {
+      const configured = await configureTimer(
+        roomId,
+        timerEnabled,
+        timerEnabled ? timerDurationSeconds * 1000 : null
+      );
+      setGameData(configured);
       await updateRoomStatus(roomId, 'playing');
       await enterRound(roomId);
     } catch (err) {
       console.error('Error starting game:', err);
+    }
+  };
+
+  const handleGiveUp = async () => {
+    if (!roomId || givingUp || !currentPlayer) return;
+    if (!window.confirm('End the game for both players?')) return;
+
+    setGivingUp(true);
+    try {
+      const updated = await giveUpGame(roomId, myId, currentPlayer.name);
+      setGameData(updated);
+    } catch (err) {
+      setGuessError(err instanceof Error ? err.message : 'Could not end the game');
+    } finally {
+      setGivingUp(false);
     }
   };
 
@@ -243,7 +269,7 @@ export default function GuessMyCodeGame() {
 
   // Countdown timer, synced off the shared timerStartedAt
   useEffect(() => {
-    if (!gameData || gameData.phase !== 'guessing' || !gameData.timerStartedAt) return;
+    if (!gameData || !gameData.timerEnabled || gameData.phase !== 'guessing' || !gameData.timerStartedAt) return;
 
     timeoutFiredRef.current = false;
     const startedAt = new Date(gameData.timerStartedAt).getTime();
@@ -310,6 +336,8 @@ export default function GuessMyCodeGame() {
     setIsHost(false);
     setPlayers([]);
     setGameData(null);
+    setTimerEnabled(null);
+    setTimerDurationSeconds(90);
     setMyCodeInput('');
     setGuessInput('');
     setJoinCodeInput('');
@@ -406,6 +434,51 @@ export default function GuessMyCodeGame() {
         onStartGame={handleStartGame}
         onBack={handleLeave}
         onRoomIdReady={(rid) => setRoomId(rid)}
+        lobbyContent={
+          <div className="gmc-lobby-settings">
+            {isHost ? (
+              <>
+                <div className="gmc-lobby-settings-title">Round timer</div>
+                <div className="gmc-timer-choice-row">
+                  <label>
+                    <input
+                      type="radio"
+                      name="gmc-timer"
+                      checked={timerEnabled === false}
+                      onChange={() => setTimerEnabled(false)}
+                    />
+                    No timer
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="gmc-timer"
+                      checked={timerEnabled === true}
+                      onChange={() => setTimerEnabled(true)}
+                    />
+                    Use timer
+                  </label>
+                </div>
+                {timerEnabled && (
+                  <select
+                    className="gmc-duration-select"
+                    value={timerDurationSeconds}
+                    onChange={(e) => setTimerDurationSeconds(Number(e.target.value))}
+                  >
+                    <option value={30}>30 seconds</option>
+                    <option value={60}>1 minute</option>
+                    <option value={90}>1 minute 30 seconds</option>
+                    <option value={120}>2 minutes</option>
+                    <option value={300}>5 minutes</option>
+                  </select>
+                )}
+                {timerEnabled === null && <div className="gmc-settings-hint">Choose whether to use a timer before starting.</div>}
+              </>
+            ) : (
+              <div className="gmc-settings-hint">The host will choose whether this round has a timer.</div>
+            )}
+          </div>
+        }
       />
     );
   }
@@ -424,6 +497,11 @@ export default function GuessMyCodeGame() {
           <div className="gmc-round-header">
             <h1 className="gmc-title gmc-title--sm">🔐 Guess My Code</h1>
             {roomCode && <span className="gmc-room-badge">Room {roomCode}</span>}
+            {isHost && gameData?.phase !== 'finished' && (
+              <button className="gmc-give-up-btn" onClick={handleGiveUp} disabled={givingUp}>
+                {givingUp ? 'Ending…' : 'Give up'}
+              </button>
+            )}
           </div>
 
           {/* ── ENTER CODE ───────────────────────────────────────── */}
@@ -459,15 +537,17 @@ export default function GuessMyCodeGame() {
           {/* ── GUESSING ─────────────────────────────────────────── */}
           {roundPhase === 'guessing' && gameData && (
             <div className="gmc-stage">
-              <div className="gmc-timer-wrap">
-                <div className="gmc-timer">{formatTime(timeLeftMs)}</div>
-                <div className="gmc-timer-track">
-                  <div
-                    className="gmc-timer-fill"
-                    style={{ width: `${Math.max(0, Math.min(100, (timeLeftMs / (gameData.durationMs || ROUND_DURATION_MS)) * 100))}%` }}
-                  />
+              {gameData.timerEnabled ? (
+                <div className="gmc-timer-wrap">
+                  <div className="gmc-timer">{formatTime(timeLeftMs)}</div>
+                  <div className="gmc-timer-track">
+                    <div
+                      className="gmc-timer-fill"
+                      style={{ width: `${Math.max(0, Math.min(100, (timeLeftMs / (gameData.durationMs || ROUND_DURATION_MS)) * 100))}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : <div className="gmc-no-timer">No timer — take your time.</div>}
 
               <div className="gmc-my-code-chip">
                 Your code: <strong>{myId ? gameData.codes[myId] : '----'}</strong>
@@ -505,10 +585,10 @@ export default function GuessMyCodeGame() {
                     {[...(gameData.guesses[myId] || [])].reverse().map((g, i) => (
                       <div key={i} className="gmc-guess-row">
                         <span className="gmc-guess-digits">{g.guess}</span>
-                        <span className="gmc-guess-feedback">
-                          {'🔒'.repeat(g.bulls)}
-                          {'🔄'.repeat(g.cows)}
-                          {g.bulls === 0 && g.cows === 0 && <span className="gmc-guess-empty">no matches</span>}
+                        <span className="gmc-guess-feedback" aria-label={`${g.bulls} right spot, ${g.cows} wrong spot`}>
+                          {(g.feedback || []).map((result, digitIndex) => (
+                            <span key={digitIndex}>{result === 'bull' ? '🔒' : result === 'cow' ? '🔄' : '❌'}</span>
+                          ))}
                         </span>
                       </div>
                     ))}
@@ -521,7 +601,9 @@ export default function GuessMyCodeGame() {
           {/* ── FINISHED ─────────────────────────────────────────── */}
           {roundPhase === 'finished' && gameData && (
             <div className="gmc-stage gmc-stage--finished">
-              {gameData.winnerId ? (
+              {gameData.endedReason === 'give-up' ? (
+                <h2 className="gmc-result-title">The host ended the game.</h2>
+              ) : gameData.winnerId ? (
                 <h2 className="gmc-result-title">
                   🎉 {gameData.winnerId === myId ? 'You cracked it!' : `${gameData.winnerName} cracked the code!`}
                 </h2>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getRoomPlayers, subscribeToRoom, getGameRoom, addPlayerToRoom } from '../lib/multiplayerService';
 import './GameLobby.css';
@@ -22,6 +22,7 @@ interface GameLobbyProps {
   onStartGame?: () => void;
   onBack?: () => void;
   onRoomIdReady?: (roomId: string) => void;
+  lobbyContent?: ReactNode;
 }
 
 export default function GameLobby({
@@ -33,6 +34,7 @@ export default function GameLobby({
   onStartGame,
   onBack,
   onRoomIdReady,
+  lobbyContent,
 }: GameLobbyProps) {
   const { currentPlayer } = useAuth();
   const [roomId, setRoomId] = useState<string | null>(initialRoomId || null);
@@ -327,6 +329,8 @@ export default function GameLobby({
             <strong>Players Needed:</strong> 2-{maxPlayers}
           </p>
         </div>
+
+        {lobbyContent}
 
         {/* Actions */}
         <div className="lobby-actions">

@@ -15,11 +15,13 @@ import { supabase } from './supabase';
  *   phase: 'enter-code' | 'guessing' | 'finished',
  *   codes: { [playerId]: string },            // 4-digit strings
  *   guesses: { [playerId]: GuessEntry[] },     // guesses THAT player made
+ *   timerEnabled: boolean,                     // chosen by the host in the lobby
  *   timerStartedAt: string | null,             // ISO — set once both codes are in
- *   durationMs: number,                        // 90000
+ *   durationMs: number | null,                 // null when the timer is disabled
  *   winnerId: string | null,
  *   winnerName: string | null,
  *   revealedAt: string | null,
+ *   endedReason: 'won' | 'timeout' | 'give-up' | null,
  * }
  * ─────────────────────────────────────────────────────────────────────
  */
@@ -28,18 +30,24 @@ export interface GuessEntry {
   guess: string;
   bulls: number; // correct digit, correct position
   cows: number;  // correct digit, wrong position
+  feedback: GuessFeedback[];
   at: string;
 }
+
+export type GuessFeedback = 'bull' | 'cow' | 'miss';
 
 export interface CodeGameData {
   phase: 'enter-code' | 'guessing' | 'finished';
   codes: Record<string, string>;
   guesses: Record<string, GuessEntry[]>;
+  timerEnabled: boolean;
   timerStartedAt: string | null;
-  durationMs: number;
+  durationMs: number | null;
   winnerId: string | null;
   winnerName: string | null;
   revealedAt: string | null;
+  endedReason: 'won' | 'timeout' | 'give-up' | null;
+  surrenderName?: string;
 }
 
 export const GUESS_CODE_GAME_TYPE = 'guess_my_code';
@@ -49,11 +57,13 @@ export const emptyGameData = (): CodeGameData => ({
   phase: 'enter-code',
   codes: {},
   guesses: {},
+  timerEnabled: false,
   timerStartedAt: null,
-  durationMs: ROUND_DURATION_MS,
+  durationMs: null,
   winnerId: null,
   winnerName: null,
   revealedAt: null,
+  endedReason: null,
 });
 
 /** 4 digits, no leading zero (so it's never read as a <4-digit number) */
@@ -149,12 +159,14 @@ export const evaluateGuess = (guess: string, secret: string) => {
   const s = secret.split('');
   let bulls = 0;
   let cows = 0;
-  const usedSecret = [false, false, false, false];
-  const usedGuess = [false, false, false, false];
+  const feedback: GuessFeedback[] = Array(4).fill('miss');
+  const usedSecret = Array(4).fill(false);
+  const usedGuess = Array(4).fill(false);
 
   for (let i = 0; i < 4; i++) {
     if (g[i] === s[i]) {
       bulls++;
+      feedback[i] = 'bull';
       usedSecret[i] = true;
       usedGuess[i] = true;
     }
@@ -164,10 +176,28 @@ export const evaluateGuess = (guess: string, secret: string) => {
     const idx = s.findIndex((d, j) => d === g[i] && !usedSecret[j]);
     if (idx !== -1) {
       cows++;
+      feedback[i] = 'cow';
       usedSecret[idx] = true;
     }
   }
-  return { bulls, cows };
+  return { bulls, cows, feedback };
+};
+
+/** Save the host's shared timer choice before the game starts. */
+export const configureTimer = async (
+  roomId: string,
+  timerEnabled: boolean,
+  durationMs: number | null
+) => {
+  if (timerEnabled && (!durationMs || durationMs <= 0)) {
+    throw new Error('Choose a timer duration or disable the timer.');
+  }
+
+  return mutateGameData(roomId, (current) => ({
+    ...current,
+    timerEnabled,
+    durationMs: timerEnabled ? durationMs : null,
+  }));
 };
 
 /**
@@ -186,7 +216,9 @@ export const submitSecretCode = async (roomId: string, playerId: string, code: s
       ...current,
       codes,
       phase: bothIn ? 'guessing' : current.phase,
-      timerStartedAt: bothIn && !current.timerStartedAt ? new Date().toISOString() : current.timerStartedAt,
+      timerStartedAt: bothIn && current.timerEnabled && !current.timerStartedAt
+        ? new Date().toISOString()
+        : current.timerStartedAt,
     };
   });
 };
@@ -205,11 +237,12 @@ export const submitGuess = async (
   if (!isValidCode(guess)) throw new Error('Guess must be exactly 4 digits and not start with 0.');
 
   return mutateGameData(roomId, (current) => {
+    if (current.phase === 'finished') return current;
     const secret = current.codes[opponentId];
     if (!secret) return current; // opponent hasn't submitted yet, ignore
 
-    const { bulls, cows } = evaluateGuess(guess, secret);
-    const entry: GuessEntry = { guess, bulls, cows, at: new Date().toISOString() };
+    const { bulls, cows, feedback } = evaluateGuess(guess, secret);
+    const entry: GuessEntry = { guess, bulls, cows, feedback, at: new Date().toISOString() };
     const guesses = {
       ...current.guesses,
       [playerId]: [...(current.guesses[playerId] || []), entry],
@@ -224,6 +257,32 @@ export const submitGuess = async (
       winnerId: won ? playerId : current.winnerId,
       winnerName: won ? playerName : current.winnerName,
       revealedAt: won ? new Date().toISOString() : current.revealedAt,
+      endedReason: won ? 'won' : current.endedReason,
+    };
+  });
+};
+
+/** End the game from the host controls, whether or not a timer is enabled. */
+export const giveUpGame = async (roomId: string, playerId: string, playerName: string) => {
+  const room = await supabase
+    .from('game_rooms')
+    .select('host_id')
+    .eq('id', roomId)
+    .maybeSingle();
+
+  if (room.error) throw room.error;
+  if (room.data?.host_id !== playerId) throw new Error('Only the host can end this game.');
+
+  return mutateGameData(roomId, (current) => {
+    if (current.phase === 'finished') return current;
+    return {
+      ...current,
+      phase: 'finished',
+      winnerId: null,
+      winnerName: null,
+      revealedAt: new Date().toISOString(),
+      endedReason: 'give-up',
+      surrenderName: playerName,
     };
   });
 };
@@ -239,6 +298,7 @@ export const finalizeRoundOnTimeout = async (roomId: string) => {
       ...current,
       phase: 'finished',
       revealedAt: current.revealedAt || new Date().toISOString(),
+      endedReason: 'timeout',
     };
   });
 };

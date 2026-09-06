@@ -170,6 +170,51 @@
   border: 2px solid #333;
 }
 
+.gmc-lobby-settings {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #333;
+  background: #0b1120;
+  color: #a9b4cc;
+}
+
+.gmc-lobby-settings-title {
+  color: #FFD700;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.gmc-timer-choice-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.gmc-timer-choice-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gmc-duration-select {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #333;
+  background: #232e4a;
+  color: #FFD700;
+  font: inherit;
+}
+
+.gmc-settings-hint,
+.gmc-no-timer {
+  color: #a9b4cc;
+  font-size: 12px;
+  text-align: center;
+}
+
 /* ── Round header ────────────────────────────────────────────────── */
 .gmc-round-header {
   width: 100%;
@@ -178,6 +223,22 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.gmc-give-up-btn {
+  width: auto;
+  margin-left: auto;
+  padding: 7px 10px;
+  border: 2px solid #FF4757;
+  background: transparent;
+  color: #FF4757;
+  font: inherit;
+  cursor: pointer;
+}
+
+.gmc-give-up-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .gmc-stage {
@@ -346,6 +407,8 @@
 .gmc-guess-feedback {
   font-size: 14px;
   letter-spacing: 2px;
+  display: inline-flex;
+  gap: 2px;
 }
 
 .gmc-guess-empty {
